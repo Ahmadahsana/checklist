@@ -2,7 +2,7 @@
 
 @section('css')
     <!-- Muat CSS ApexCharts melalui Vite -->
-    @vite(['node_modules/apexcharts/dist/apexcharts.css'])
+    {{-- @vite(['node_modules/apexcharts/dist/apexcharts.css']) --}}
 @endsection
 
 @section('content')
@@ -55,7 +55,8 @@
 
 @section('script')
     <!-- Muat JS ApexCharts, Lodash, dan Preline Helper melalui Vite -->
-    @vite(['node_modules/lodash/lodash.min.js', 'node_modules/apexcharts/dist/apexcharts.min.js', 'node_modules/preline/dist/helper-apexcharts.js'])
+    {{-- @vite(['node_modules/lodash/lodash.min.js', 'node_modules/apexcharts/dist/apexcharts.min.js', 'node_modules/preline/dist/helper-apexcharts.js']) --}}
+    {{-- @vite([ 'node_modules/apexcharts/dist/apexcharts.min.js', 'node_modules/preline/dist/helper-apexcharts.js']) --}}
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

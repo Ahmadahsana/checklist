@@ -7,13 +7,16 @@
 // import _ from 'lodash/lodash';
 
 import "dropzone/dist/dropzone-min";
-
+import _ from "lodash";
 import "preline";
 import "jquery";
 import "simplebar";
 import Waves from "node-waves";
+import ApexCharts from "apexcharts";
 
 import { HSDataTable } from "@preline/datatable";
+
+window.ApexCharts = ApexCharts;
 
 document.addEventListener("DOMContentLoaded", function () {
   new HSDataTable("#usersTable", {
