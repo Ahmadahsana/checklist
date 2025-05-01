@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminFeeController;
 use App\Http\Controllers\AdminProgressController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContentLandingPageController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\KosController;
 use App\Http\Controllers\PresensiController;
@@ -120,6 +121,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/validasi_user', [UserController::class, 'validasi_user'])->name('users.validate');
     Route::post('/admin/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
     Route::post('/admin/users/{user}/update-price', [UserController::class, 'updatePrice'])->name('users.updatePrice');
+
+
+    // landingpage
+    Route::get('/admin/landingpage', [ContentLandingPageController::class, 'index'])->name('admin.landingpage');
+    Route::post('/admin/landingpage', [ContentLandingPageController::class, 'store'])->name('admin.landingpage.update');
 });
 
 Route::get('/icon', function () {

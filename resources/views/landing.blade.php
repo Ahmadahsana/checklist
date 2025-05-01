@@ -223,7 +223,7 @@
               <div class="mx-auto max-w-4xl py-8 px-6 sm:py-24 lg:flex lg:max-w-7xl lg:items-center lg:justify-between lg:px-8">
                 <h2 class="text-2xl lg:text-4xl font-bold tracking-tight text-gray-900 sm:text-4xl">
                   <span class="block">Agenda pekan ini</span>
-                  <span class="-mb-1 lg:mt-3 block bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text pb-1 text-transparent">" Sehari bersama Al Quran "</span>
+                  <span class="-mb-1 lg:mt-3 block bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text pb-1 text-transparent">" {{ $contentLandingPage->title }} "</span>
                 </h2>
                 <div class="mt-6 space-y-4 sm:flex sm:space-y-0 sm:space-x-5">
                   <a href="#" class="flex items-center justify-center rounded-md border border-transparent bg-gradient-to-r from-purple-600 to-indigo-600 bg-origin-border px-4 py-3 text-base font-medium text-white shadow-sm hover:from-purple-700 hover:to-indigo-700">Join Sekarang</a>
@@ -232,61 +232,14 @@
               </div>
             </div>
             <div aria-hidden="true" class="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-gray-100"></div>
-            <div class="relative">
-              <div class="lg:mx-auto lg:grid lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-2 lg:gap-24 lg:px-8">
-                <div class="mt-3 lg:mt-0">
-                  <div class=" flex justify-center lg:relative lg:m-0 lg:h-full lg:px-0">
-                    <img class="w-64 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:left-0 lg:h-full lg:w-auto lg:max-w-none" src="/images/rpm_agenda.jpg" alt="Inbox user interface">
-                  </div>
-                </div>
-                <div class="mx-auto max-w-xl px-6 lg:mx-0 lg:max-w-none lg:py-16 lg:px-0 mt-8 lg:mt-0">
-                  <p class=" text-justify">
-                    
-
-                    🪄🎀 SEHARI BERSAMA QURAN🎀🪄
-
-                    🗓 Sabtu, 15 Maret 2025
-                    ⏰ 08.00- selesai
-                    📍Masjid Ayodya, Sekaran
-                    https://maps.app.goo.gl/3crxhLK72i3jmRELA
-
-                    Special Kajian Bareng:
-                    🎀Ustadzah Ani Rahmawati Dewi, S.Pd
-
-                    Rangkaian kegiatan :
-                    1. Halaqoh Tilawah
-                    2. Halaqoh Tahsin
-                    3. Kajian Muslimah
-                    4. Ifthar Bersama
-
-                    Apa yang perlu dibawa?
-                    1. Niat karena Allah taala
-                    2. Al Quran 
-                    3. Alat tulis
-                    4. Hati bahagiaaa
-                    5. Rasa Semangatt
-
-                    SEMUA ANGGOTA RPM WAJIB MENGIKUTI KEGIATAN INI (konfirmasi kehadiran lewat PJ kost)💗🌷
-
-                    📍 TERBUKA UNTUK UMUM (Muslimah Only)😚🫱🏻‍🫲🏻
-
-                    Daftar di sini : 
-                    https://forms.gle/98fJUEECDfa13Nci7
-
-                    CP : +62 838-3624-6830 (Hanin)
-
-                    Jangan lupaa datang yaa, diharapkan datang tepat waktu🙂‍↕🎈
-
-                    Wassalamu'alaikum warahmatullahi wabarakatuh.
-
-                    #RPTM 
-                    #BERPRESTASIDANBERKARAKTER 
-                    #SEHARIBERSAMAQURAN 
-                    #RUMAHPRESTASIDANTAHFIDZMAHASISWA
-
-                  </p>
-                </div>
-                
+            <div class="lg:grid lg:grid-cols-2 lg:gap-24 lg:max-w-7xl lg:px-8 mx-auto">
+              <div class="flex justify-center items-center">
+                <img class="w-64 rounded-xl shadow-xl ring-1 ring-black ring-opacity-5" src="{{ asset('storage/' . $contentLandingPage->image) }}" alt="Inbox user interface">
+              </div>
+              <div class=" px-6 lg:px-0 text-xs">
+                <p class="text-justify ">
+                  {!! $contentLandingPage->content !!}
+                </p>
               </div>
             </div>
             {{-- <div class="mt-24">

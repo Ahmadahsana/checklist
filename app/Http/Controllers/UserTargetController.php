@@ -599,19 +599,19 @@ class UserTargetController extends Controller
             ];
 
             // Debugging: Log data chart untuk memastikan format tanggal dan data benar
-            \Log::info('Chart Data for period ' . $period, [
-                'categories' => $categories,
-                'series' => $series,
-                'programTargets' => $programTargets->toArray(),
-            ]);
+            // \Log::info('Chart Data for period ' . $period, [
+            //     'categories' => $categories,
+            //     'series' => $series,
+            //     'programTargets' => $programTargets->toArray(),
+            // ]);
 
             return response()->json(['chartData' => $chartData]);
         } catch (\Exception $e) {
-            \Log::error('Error in updateDashboardChart: ' . $e->getMessage(), [
-                'period' => $request->input('period'),
-                'user_id' => $user->id ?? null,
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
+            // \Log::error('Error in updateDashboardChart: ' . $e->getMessage(), [
+            //     'period' => $request->input('period'),
+            //     'user_id' => $user->id ?? null,
+            //     'stack_trace' => $e->getTraceAsString(),
+            // ]);
             return response()->json(['error' => 'Terjadi kesalahan server. Silakan coba lagi.'], 500);
         }
     }

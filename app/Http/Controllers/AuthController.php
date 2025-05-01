@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContentLandingPage;
 use App\Models\Kos;
 use App\Models\Payment;
 use App\Models\User;
@@ -54,7 +55,8 @@ class AuthController extends Controller
 
     public function landing()
     {
-        return view('landing');
+        $contentLandingPage = ContentLandingPage::first();
+        return view('landing', compact('contentLandingPage'));
     }
 
     public function daftar_baru($level)
