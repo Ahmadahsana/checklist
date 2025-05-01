@@ -23,7 +23,7 @@
             <select id="userSelect" class="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                 <option value="">Pilih User</option>
                 @foreach ($users as $user)
-                    <option value="{{ $user->id }}">{{ $user->name }} (Level: {{ $user->level }})</option>
+                    <option value="{{ $user->id }}">{{ $user->nama_lengkap }} (Level: {{ $user->level }})</option>
                 @endforeach
             </select>
         </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Program;
+use App\Models\ProgressBulanan;
 use App\Models\UserTarget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,33 @@ class AdminProgressController extends Controller
         $programs = Program::all(); // Ambil semua program untuk chart keseluruhan
 
         return view('admin.progress.index', compact('users', 'programs'));
+    }
+
+    public function rank(Request $request)
+    {
+
+        // Ambil bulan yang dipilih dari request, default ke bulan saat ini
+        $selectedBulan = $request->input('bulan', date('Y-m'));
+
+        // Ambil daftar bulan yang tersedia dari progress_bulanan
+        $availableBulan = ProgressBulanan::select('bulan')
+            ->distinct()
+            ->orderBy('bulan', 'desc')
+            ->pluck('bulan')
+            ->toArray();
+
+        // Ambil data perangkingan untuk bulan yang dipilih
+        $rankings = ProgressBulanan::select('progress_bulanans.user_id', 'progress_bulanans.value', 'users.nama_lengkap')
+            ->join('users', 'progress_bulanans.user_id', '=', 'users.id')
+            ->where('progress_bulanans.bulan', $selectedBulan)
+            ->orderBy('progress_bulanans.value', 'desc')
+            ->get()
+            ->map(function ($item, $index) {
+                $item->rank = $index + 1; // Tambahkan ranking
+                return $item;
+            });
+
+        return view('admin.rankings.index', compact('rankings', 'availableBulan', 'selectedBulan'));
     }
 
     public function update(Request $request)

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
+use App\Models\ProgressBulanan;
 use App\Models\UserTarget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserTargetController extends Controller
 {
@@ -46,18 +48,79 @@ class UserTargetController extends Controller
         return view('user-targets.index', compact('programs', 'userTargets', 'selectedDate'));
     }
 
+    // public function store(Request $request)
+    // {
+    //     // if (!Gate::allows('is-user')) {
+    //     //     abort(403, 'Akses ditolak. Hanya user biasa yang dapat mengakses halaman ini.');
+    //     // }
+
+    //     $user = Auth::user();
+    //     $date = $request->input('date');
+
+    //     // Debugging: Log data yang diterima dari form
+    //     // \Log::info('Received target data for date ' . $date, $request->all());
+
+    //     $request->validate([
+    //         'date' => 'required|date|before_or_equal:' . now()->toDateString() . '|after_or_equal:' . now()->subDays(7)->toDateString(),
+    //         'targets' => 'required|array',
+    //         'targets.*.program_id' => 'required|exists:programs,id',
+    //         'targets.*.value' => [
+    //             'required',
+    //             function ($attribute, $value, $fail) {
+    //                 $programId = explode('.', $attribute)[1]; // Ambil program_id dari atribut
+    //                 $program = Program::find($programId);
+    //                 if (!$program) {
+    //                     $fail('Program tidak ditemukan.');
+    //                     return;
+    //                 }
+    //                 if ($program->type === 'numeric' && (!is_numeric($value) || $value < 0)) {
+    //                     $fail('Nilai harus angka positif untuk target numeric.');
+    //                 }
+    //                 if ($program->type === 'boolean' && !in_array($value, [0, 1])) {
+    //                     $fail('Nilai harus 0 (Tidak) atau 1 (Ya) untuk target boolean.');
+    //                 }
+    //             },
+    //         ],
+    //     ]);
+
+    //     // Simpan semua target untuk tanggal yang dipilih
+    //     foreach ($request->input('targets') as $programData) {
+    //         $programId = $programData['program_id'];
+    //         $value = $programData['value'];
+    //         $program = Program::find($programId);
+
+    //         $existingTarget = UserTarget::where('user_id', $user->id)
+    //             ->where('program_id', $programId)
+    //             ->where('date', $date)
+    //             ->first();
+
+    //         $valueToSave = $program->type === 'boolean' ? ($value === '1' ? 1 : 0) : $value;
+
+    //         if ($existingTarget) {
+    //             $existingTarget->update(['value' => $valueToSave, 'status' => 'completed']);
+    //         } else {
+    //             UserTarget::create([
+    //                 'user_id' => $user->id,
+    //                 'program_id' => $programId,
+    //                 'date' => $date,
+    //                 'value' => $valueToSave,
+    //                 'status' => 'completed',
+    //             ]);
+    //         }
+    //     }
+
+    //     // Debugging: Log data yang disimpan
+    //     // \Log::info('Targets saved for date ' . $date, $request->input('targets'));
+
+    //     return redirect()->route('user-targets.index', ['date' => $date])->with('success', 'Semua target berhasil disimpan');
+    // }
+
     public function store(Request $request)
     {
-        // if (!Gate::allows('is-user')) {
-        //     abort(403, 'Akses ditolak. Hanya user biasa yang dapat mengakses halaman ini.');
-        // }
-
         $user = Auth::user();
         $date = $request->input('date');
 
-        // Debugging: Log data yang diterima dari form
-        // \Log::info('Received target data for date ' . $date, $request->all());
-
+        // Validasi input
         $request->validate([
             'date' => 'required|date|before_or_equal:' . now()->toDateString() . '|after_or_equal:' . now()->subDays(7)->toDateString(),
             'targets' => 'required|array',
@@ -65,7 +128,7 @@ class UserTargetController extends Controller
             'targets.*.value' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    $programId = explode('.', $attribute)[1]; // Ambil program_id dari atribut
+                    $programId = explode('.', $attribute)[1];
                     $program = Program::find($programId);
                     if (!$program) {
                         $fail('Program tidak ditemukan.');
@@ -81,36 +144,133 @@ class UserTargetController extends Controller
             ],
         ]);
 
-        // Simpan semua target untuk tanggal yang dipilih
-        foreach ($request->input('targets') as $programData) {
-            $programId = $programData['program_id'];
-            $value = $programData['value'];
-            $program = Program::find($programId);
+        // Mulai transaksi untuk konsistensi data
+        DB::beginTransaction();
 
-            $existingTarget = UserTarget::where('user_id', $user->id)
-                ->where('program_id', $programId)
-                ->where('date', $date)
-                ->first();
+        try {
+            $updatedProgramIds = [];
 
-            $valueToSave = $program->type === 'boolean' ? ($value === '1' ? 1 : 0) : $value;
+            // Simpan atau update semua target
+            foreach ($request->input('targets') as $programData) {
+                $programId = $programData['program_id'];
+                $value = $programData['value'];
+                $program = Program::find($programId);
 
-            if ($existingTarget) {
-                $existingTarget->update(['value' => $valueToSave, 'status' => 'completed']);
-            } else {
-                UserTarget::create([
-                    'user_id' => $user->id,
+                $valueToSave = $program->type === 'boolean' ? ($value === '1' ? 1 : 0) : $value;
+
+                $existingTarget = UserTarget::where('user_id', $user->id)
+                    ->where('program_id', $programId)
+                    ->where('date', $date)
+                    ->first();
+
+                if ($existingTarget) {
+                    // Jika update, simpan nilai lama untuk perhitungan inkremental
+                    $oldValue = $existingTarget->value;
+                    $existingTarget->update(['value' => $valueToSave, 'status' => 'completed']);
+                } else {
+                    // Jika insert, tidak ada nilai lama
+                    $oldValue = null;
+                    UserTarget::create([
+                        'user_id' => $user->id,
+                        'program_id' => $programId,
+                        'date' => $date,
+                        'value' => $valueToSave,
+                        'status' => 'completed',
+                    ]);
+                }
+
+                // Simpan program_id untuk pembaruan progres bulanan
+                $updatedProgramIds[] = [
                     'program_id' => $programId,
-                    'date' => $date,
                     'value' => $valueToSave,
-                    'status' => 'completed',
-                ]);
+                    'old_value' => $oldValue,
+                ];
             }
+
+            // Update progres bulanan
+            $this->updateMonthlyProgress($user->id, $date, $updatedProgramIds);
+
+            DB::commit();
+
+            return redirect()->route('user-targets.index', ['date' => $date])
+                ->with('success', 'Semua target berhasil disimpan');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // Log error jika diperlukan
+            // \Log::error('Error saving targets: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyimpan target.');
+        }
+    }
+
+    protected function updateMonthlyProgress($userId, $date, $updatedProgramIds)
+    {
+        // Tentukan bulan dari date
+        $bulan = date('Y-m', strtotime($date));
+
+        // Ambil semua program yang diupdate
+        $programIds = array_column($updatedProgramIds, 'program_id');
+        $programs = Program::whereIn('id', $programIds)->get()->keyBy('id');
+
+        // Mulai transaksi untuk progres bulanan
+        DB::beginTransaction();
+
+        try {
+            foreach ($updatedProgramIds as $updated) {
+                $programId = $updated['program_id'];
+                $value = $updated['value'];
+                $oldValue = $updated['old_value'];
+                $program = $programs[$programId];
+
+                // Hitung persentase untuk record baru/updated
+                $persentase = $this->calculatePercentage($program, $value);
+
+                // Jika ada nilai lama (update), hitung persentase lama
+                $oldPersentase = $oldValue !== null ? $this->calculatePercentage($program, $oldValue) : null;
+
+                // Ambil atau buat record progress_bulanan
+                $progress = ProgressBulanan::firstOrCreate(
+                    ['user_id' => $userId, 'bulan' => $bulan],
+                    ['total_persentase' => 0, 'jumlah_record' => 0, 'value' => 0]
+                );
+
+                // Update inkremental
+                if ($oldPersentase !== null) {
+                    // Update: Kurangi persentase lama, tambah persentase baru
+                    $progress->total_persentase = $progress->total_persentase - $oldPersentase + $persentase;
+                } else {
+                    // Insert: Tambah persentase baru, tambah jumlah record
+                    $progress->total_persentase += $persentase;
+                    $progress->jumlah_record += 1;
+                }
+
+                // Hitung rata-rata
+                $progress->value = $progress->jumlah_record > 0
+                    ? $progress->total_persentase / $progress->jumlah_record
+                    : 0;
+
+                $progress->save();
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // Log error jika diperlukan
+            // \Log::error('Error updating monthly progress: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    protected function calculatePercentage($program, $value)
+    {
+        if ($program->type === 'boolean') {
+            return $value == 1 ? 100 : 0;
         }
 
-        // Debugging: Log data yang disimpan
-        // \Log::info('Targets saved for date ' . $date, $request->input('targets'));
+        if ($program->type === 'numeric') {
+            return min(($value / $program->target) * 100, 100);
+        }
 
-        return redirect()->route('user-targets.index', ['date' => $date])->with('success', 'Semua target berhasil disimpan');
+        return 0; // Default jika tipe tidak dikenal
     }
 
     private function isValidDate($date, $minDate)

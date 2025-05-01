@@ -81,6 +81,8 @@ Route::middleware('auth')->group(function () { // Pastikan hanya admin yang bisa
     Route::get('/admin/progress', [AdminProgressController::class, 'index'])->name('admin.progress.index');
     Route::post('/admin/progress/update', [AdminProgressController::class, 'update'])->name('admin.progress.update');
     Route::get('/admin/progress/overall', [AdminProgressController::class, 'overallProgress'])->name('admin.progress.overall');
+
+    Route::get('/admin/rank', [AdminProgressController::class, 'rank'])->name('admin.rank');
 });
 
 Route::middleware('auth')->group(function () {

@@ -37,9 +37,16 @@
         </div>
 
         <div class="mb-4">
-            <label for="tempat_tanggal_lahir" class="block text-sm font-medium text-gray-700">Tempat Tanggal Lahir</label>
-            <input type="text" name="tempat_tanggal_lahir" id="tempat_tanggal_lahir" value="{{ old('tempat_tanggal_lahir', $user->tempat_tanggal_lahir) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-            @error('tempat_tanggal_lahir')
+            <label for="tempat_lahir" class="block text-sm font-medium text-gray-700">Tempat Lahir</label>
+            <input type="text" name="tempat_lahir" id="tempat_lahir" value="{{ old('tempat_lahir', $user->tempat_lahir) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+            @error('tempat_lahir')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+        <div class="mb-4">
+            <label for="tanggal_lahir" class="block text-sm font-medium text-gray-700">Tanggal Lahir</label>
+            <input type="date" name="tanggal_lahir" id="tanggal_lahir" value="{{ old('tanggal_lahir', $user->tanggal_lahir) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+            @error('tanggal_lahir')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror
         </div>
@@ -54,7 +61,7 @@
 
         <div class="mb-4">
             <label for="no_hp" class="block text-sm font-medium text-gray-700">No HP</label>
-            <input type="text" name="no_hp" id="no_hp" value="{{ old('no_hp', $user->no_hp) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+            <input type="number" name="no_hp" id="no_hp" value="{{ old('no_hp', $user->no_hp) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
             @error('no_hp')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror

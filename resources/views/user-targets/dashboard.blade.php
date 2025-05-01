@@ -17,8 +17,48 @@
             </div>
         @endif
 
+        @if ($hasTargetsToday)
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="card-title">Capaianmu hari ini</h4>
+            </div>
+    
+            <div class="card-body">
+                <div id="radial-chart" class="apex-charts"></div>
+            </div>
+    
+            <div class="border-t border-default-200 border-dashed card-body">
+                <div class="flex items-center justify-center gap-3">
+                    <div class="flex items-center gap-1">
+                        <div class="size-3 rounded-full bg-teal-500"></div>
+                        <p class="text-sm text-default-700">Mumtaz</p>
+                    </div>
+    
+                    <div class="flex items-center gap-1">
+                        <div class="size-3 rounded-full bg-blue-500"></div>
+                        <p class="text-sm text-default-700">Khoir</p>
+                    </div>
+    
+                    <div class="flex items-center gap-1">
+                        <div class="size-3 rounded-full bg-yellow-500"></div>
+                        <p class="text-sm text-default-700">Hasan</p>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <div class="size-3 rounded-full bg-red-500"></div>
+                        <p class="text-sm text-default-700">Tabayyun</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+            @else
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+                    Anda belum mengisi target harian hari ini. Silakan isi di <a href="{{ route('user-targets.index') }}" class="text-blue-600 hover:underline">halaman target</a>.
+                </div>
+            @endif
+        
+
         <!-- Progress Harian Keseluruhan -->
-        <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm">
+        {{-- <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm">
             <h2 class="text-xl font-semibold text-gray-800 mb-2">Progress Harian Keseluruhan (Hari Ini)</h2>
             @if ($hasTargetsToday)
                 <div class="w-full bg-gray-200 rounded-full h-4">
@@ -30,7 +70,7 @@
                     Anda belum mengisi target harian hari ini. Silakan isi di <a href="{{ route('user-targets.index') }}" class="text-blue-600 hover:underline">halaman target</a>.
                 </div>
             @endif
-        </div>
+        </div> --}}
 
         <!-- Chart Keseluruhan -->
         <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm">
@@ -67,6 +107,8 @@
             <!-- Apex Lines Chart -->
             <div id="overallChart" class="h-64"></div>
         </div>
+
+        
     </div>
 @endsection
 
@@ -278,5 +320,63 @@
             // Debugging tambahan untuk memastikan data categories
             console.log('Initial Chart Data:', chartData);
         });
+    </script>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+
+        let dailyProgress = @json($dailyProgress); // atau @json($dailyProgress)
+
+        let color;
+        if (dailyProgress <= 25) {
+            color = "#FF0000"; // Merah
+        } else if (dailyProgress <= 50) {
+            color = "#FFFF00"; // Kuning
+        } else if (dailyProgress <= 75) {
+            color = "#00FFFF"; // Biru
+        } else {
+            color = "#00FF00"; // Hijau
+        }
+        
+        var options = {
+        series: [dailyProgress],
+        chart: {
+            height: 350,
+            type: 'radialBar',
+            offsetY: -10
+        },
+        plotOptions: {
+            radialBar: {
+                startAngle: -135,
+                endAngle: 135,
+                dataLabels: {
+                    name: {
+                        fontSize: '16px',
+                        offsetY: 120
+                    },
+                    value: {
+                        offsetY: 76,
+                        fontSize: '22px',
+                        formatter: function (val) {
+                            return val + "%";
+                        }
+                    }
+                }
+            }
+        },
+        fill: {
+            type: 'solid',
+            colors: [color] // warna dinamis sesuai range
+        },
+        stroke: {
+            dashArray: 4
+        },
+        labels: ['Performa'],
+    };
+
+    var chart = new ApexCharts(document.querySelector("#radial-chart"), options);
+    chart.render();
+});
+
     </script>
 @endsection

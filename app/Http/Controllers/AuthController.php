@@ -26,7 +26,7 @@ class AuthController extends Controller
         ]);
 
         if ($request->username === 'rumahprestasimahasiswa' && $request->password === '12345678') {
-            return redirect('/daftar-anggota-baru/rumahtahfidzmahasiswa');
+            return redirect('/daftar-anggota-baru/rumahprestasimahasiswa');
         } elseif ($request->username === 'rumahtahfidzmahasiswa' && $request->password === '12345678') {
             return redirect('/daftar-anggota-baru/rumahtahfidzmahasiswa');
         }

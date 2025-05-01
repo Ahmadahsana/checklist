@@ -26,7 +26,8 @@ class ProfileController extends Controller
         $request->validate([
             'nama_lengkap' => 'required|string|max:255',
             'nama_panggilan' => 'nullable|string|max:255',
-            'tempat_tanggal_lahir' => 'required|string|max:255',
+            'tempat_lahir' => 'required|string|max:255',
+            'tanggal_lahir' => 'required|string|max:255',
             'alamat_asal' => 'required|string',
             'no_hp' => 'required|string|max:20',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
@@ -51,7 +52,8 @@ class ProfileController extends Controller
         $user->update([
             'nama_lengkap' => $request->nama_lengkap,
             'nama_panggilan' => $request->nama_panggilan,
-            'tempat_tanggal_lahir' => $request->tempat_tanggal_lahir,
+            'tempat_lahir' => $request->tempat_lahir,
+            'tanggal_lahir' => $request->tanggal_lahir,
             'alamat_asal' => $request->alamat_asal,
             'no_hp' => $request->no_hp,
             'email' => $request->email,
