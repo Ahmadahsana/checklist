@@ -6,8 +6,8 @@
     <div class="bg-white p-6 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-4">{{ $kegiatan->nama_kegiatan }}</h1>
         <p class="text-sm text-gray-600 mb-2">Tanggal: {{ $kegiatan->tanggal }}</p>
-        <p class="text-sm text-gray-600 mb-2">Tipe: {{ ucfirst($kegiatan->tipe) }}</p>
-        <p class="text-sm text-gray-600 mb-4">Kode Presensi: {{ $kegiatan->kode_presensi }}</p>
+        <p class="text-sm text-gray-600 mb-2">Tipe: {{ ucfirst($kegiatan->jenis) }}</p>
+        <p class="text-sm text-gray-600 mb-4">Kode Presensi: {{ $kegiatan->kode_unik }}</p>
 
         <div class="mb-6">
             <h3 class="text-lg font-semibold">Statistik Kehadiran</h3>

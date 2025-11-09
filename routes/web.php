@@ -63,6 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/programs', [ProgramController::class, 'store'])->name('programs.store');
     Route::get('/programs/{program}/edit', [ProgramController::class, 'edit'])->name('programs.edit');
     Route::put('/programs/{program}', [ProgramController::class, 'update'])->name('programs.update');
+    Route::delete('/programs/{program}/hapus', [ProgramController::class, 'destroy'])->name('programs.destroy');
 });
 
 Route::middleware('auth')->group(function () {

@@ -1,11 +1,10 @@
 @extends('layouts.vertical', ['title' => 'Starter Page'])
 
 @section('css')
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @endsection
 
 @section('content')
-
 @include("layouts.shared/page-title", ["subtitle" => "Apps", "title" => "Starter Page"])
 
 <div class="bg-white p-6 rounded-lg shadow-md">
@@ -17,51 +16,81 @@
         </div>
     @endif
 
+    @if (session('error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="flex justify-end mb-4">
         <a href="{{ route('programs.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Tambah Program</a>
     </div>
 
-    <table id="programsTable" class="min-w-full bg-white table">
-        <thead>
-            <tr>
-                <th class="py-2 px-4 border-b">No</th>
-                <th class="py-2 px-4 border-b">Nama Program</th>
-                <th class="py-2 px-4 border-b">Target</th>
-                <th class="py-2 px-4 border-b">Satuan</th>
-                <th class="py-2 px-4 border-b">Level</th>
-                <th class="py-2 px-4 border-b">Jenis Isian</th>
-                <th class="py-2 px-4 border-b">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($programs as $index => $program)
+    <div class="overflow-hidden">
+        <table id="programsTable" class="min-w-full bg-white divide-y divide-gray-200">
+            <thead>
                 <tr>
-                    <td class="py-2 px-4 border-b">{{ $index + 1 }}</td>
-                    <td class="py-2 px-4 border-b">{{ $program->nama_program }}</td>
-                    <td class="py-2 px-4 border-b">{{ $program->target }}</td>
-                    <td class="py-2 px-4 border-b">{{ $program->unit }}</td>
-                    <td class="py-2 px-4 border-b">{{ $program->level }}</td>
-                    <td class="py-2 px-4 border-b">{{ $program->type }}</td>
-                    <td class="py-2 px-4 border-b">
-                        <a href="{{ route('programs.edit', $program) }}" class="text-blue-600 hover:underline">Edit</a>
-                        
-                    </td>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">No</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Nama Program</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Target</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Satuan</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Level</th>
+                    <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Jenis Isian</th>
+                    <th class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase">Aksi</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                @forelse ($programs as $index => $program)
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{{ $index + 1 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $program->nama_program }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $program->target }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $program->unit }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $program->level }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $program->type }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                            <a href="{{ route('programs.edit', $program) }}" class="text-blue-600 hover:underline">Edit</a>
+                            <form action="{{ route('programs.destroy', $program) }}" method="POST" class="inline-block delete-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:underline ml-2">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada data program.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
-
 @endsection
 
 @section('script')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        new HSDataTable('#programsTable', {
-            pageLength: 10,
-            pagingOptions: {
-                pageBtnClasses: 'min-w-[40px] flex justify-center items-center text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 py-2.5 text-sm rounded-full disabled:opacity-50 disabled:pointer-events-none'
-            }
+        // Inisialisasi SweetAlert2 untuk konfirmasi hapus
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: 'Program ini akan dihapus secara permanen!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
         });
     });
 </script>

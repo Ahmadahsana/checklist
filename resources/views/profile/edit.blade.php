@@ -133,7 +133,7 @@
 
         <div class="mb-4">
             <label for="nama_kos" class="block text-sm font-medium text-gray-700">Nama Kos</label>
-            <input type="text" name="nama_kos" id="nama_kos" value="{{ old('nama_kos', $user->nama_kos) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <input type="text" readonly name="nama_kos" id="nama_kos" value="{{ old('nama_kos', $user->kos) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             @error('nama_kos')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror
@@ -141,7 +141,7 @@
 
         <div class="mb-4">
             <label for="harga_kos" class="block text-sm font-medium text-gray-700">Harga Kos</label>
-            <input type="number" name="harga_kos" id="harga_kos" value="{{ old('harga_kos', $user->harga_kos) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <input type="number" readonly name="harga_kos" id="harga_kos" value="{{ old('harga_kos', $user->harga_kos) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             @error('harga_kos')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror

@@ -73,4 +73,16 @@ class ProgramController extends Controller
 
         return redirect()->route('programs.index')->with('success', 'Program berhasil diperbarui');
     }
+
+    public function destroy(Program $program)
+    {
+        try {
+            $program->delete();
+            return redirect()->route('programs.index')
+                ->with('success', 'Program berhasil dihapus');
+        } catch (\Exception $e) {
+            return redirect()->route('programs.index')
+                ->with('error', 'Gagal menghapus program: ' . $e->getMessage());
+        }
+    }
 }
