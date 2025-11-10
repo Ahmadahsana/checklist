@@ -14,19 +14,7 @@ import "simplebar";
 import Waves from "node-waves";
 import ApexCharts from "apexcharts";
 
-import { HSDataTable } from "@preline/datatable";
-
 window.ApexCharts = ApexCharts;
-
-document.addEventListener("DOMContentLoaded", function () {
-  new HSDataTable("#usersTable", {
-    pageLength: 10,
-    pagingOptions: {
-      pageBtnClasses:
-        "min-w-[40px] flex justify-center items-center text-gray-800 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 py-2.5 text-sm rounded-full disabled:opacity-50 disabled:pointer-events-none",
-    },
-  });
-});
 
 class App {
   constructor() {
