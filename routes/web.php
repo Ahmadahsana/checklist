@@ -39,25 +39,30 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/daftar-anggota-baru/{level}', [AuthController::class, 'daftar_baru']);
 Route::post('/daftar_baru', [AuthController::class, 'daftar_baru_store']);
 
-Route::get('/users', [UserController::class, 'index'])->name('users.index');
-Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-Route::post('/users', [UserController::class, 'store'])->name('users.store');
-Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show'); // Route untuk detail user
-Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset.password');
-Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('users.destroy'); // Route untuk hapus
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show'); // Route untuk detail user
+    Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset.password');
+    Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('users.destroy'); // Route untuk hapus
 
-Route::get('/dashboard', [UserTargetController::class, 'dashboard'])->name('user.dashboard');
-Route::get('admin/dashboard', [TargetController::class, 'admin_dashboard'])->name('admin.dashboard');
-Route::post('/dashboard/update', [UserTargetController::class, 'updateDashboardChart'])->name('dashboard.update');
+    Route::get('admin/dashboard', [TargetController::class, 'admin_dashboard'])->name('admin.dashboard');
+});
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/dashboard', [UserTargetController::class, 'dashboard'])->name('user.dashboard');
+    Route::post('/dashboard/update', [UserTargetController::class, 'updateDashboardChart'])->name('dashboard.update');
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
     // Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update.password');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
     Route::get('/programs/create', [ProgramController::class, 'create'])->name('programs.create');
     Route::post('/programs', [ProgramController::class, 'store'])->name('programs.store');
@@ -66,7 +71,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/programs/{program}/hapus', [ProgramController::class, 'destroy'])->name('programs.destroy');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/targets', [UserTargetController::class, 'index'])->name('user-targets.index');
     Route::post('/targets', [UserTargetController::class, 'store'])->name('user-targets.store');
     Route::get('/targets/{programId}', [UserTargetController::class, 'show'])->name('user-targets.show');
@@ -74,7 +79,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/progress-personal/update', [UserTargetController::class, 'updatePersonalProgress'])->name('user-targets.personal-progress.update');
 });
 
-Route::middleware('auth')->group(function () { // Pastikan hanya admin yang bisa akses
+Route::middleware(['auth', 'role:admin'])->group(function () { // Pastikan hanya admin yang bisa akses
     Route::get('/admin/progress/user', [AdminProgressController::class, 'showUserProgress'])->name('admin.progress.user'); // Halaman utama progres per user
     Route::post('/admin/progress/user/update', [AdminProgressController::class, 'userProgressUpdate'])->name('admin.progress.user.update');
     Route::get('/admin/progress/user/search', [AdminProgressController::class, 'searchUsers'])->name('admin.progress.user.search');
@@ -101,7 +106,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/komfirmasi_pembayaran', [AdminFeeController::class, 'konfirmasi_pembayaran'])->name('admin.konfirmasi_pembayaran');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:user'])->group(function () {
     // Pembayaran oleh User
     Route::get('/user/payment', [UserPaymentController::class, 'index'])->name('user.payment');
     Route::post('/user/payment/submit', [UserPaymentController::class, 'submitPayment'])->name('user.payment.submit');
@@ -111,7 +116,7 @@ Route::middleware(['auth'])->group(function () {
 //     Route::get('{any}', [RoutingController::class, 'root'])->name('any');
 // });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     // Pembayaran oleh User
     Route::get('/kos', [KosController::class, 'index'])->name('kos.index');
     Route::get('/admin/kos/create', [KosController::class, 'create'])->name('kos.create');
@@ -145,7 +150,7 @@ Route::get('/user/presensi', [UserController::class, 'showPresensiForm'])->name(
 Route::post('/user/presensi', [UserController::class, 'storePresensi'])->name('user.presensi.store');
 
 // Route untuk Pengelola (Admin)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/presensi-kegiatan', [KegiatanController::class, 'index'])->name('presensi.index');
     Route::get('/presensi-kegiatan/create', [KegiatanController::class, 'create'])->name('presensi.create');
     Route::post('/presensi-kegiatan', [KegiatanController::class, 'store'])->name('presensi.store');
@@ -153,7 +158,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Route untuk User Personal (Peserta)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/presensi-personal', [PresensiController::class, 'index'])->name('presensi.personal');
     Route::post('/presensi-personal/submit', [PresensiController::class, 'submit'])->name('presensi.submit');
     Route::get('/presensi-riwayat', [PresensiController::class, 'riwayat'])->name('presensi.riwayat');
