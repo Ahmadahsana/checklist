@@ -89,6 +89,50 @@ class AdminProgressController extends Controller
             ->count();
         $topPerformers = $userSummaries->take(3);
 
+        $programSummaries = Program::with('userTargets')
+            ->get()
+            ->map(function ($program) {
+                $targets = $program->userTargets;
+                $totalRecords = $targets->count();
+                $participants = $targets->pluck('user_id')->unique()->count();
+                $recentUpdate = optional($targets->sortByDesc('date')->first())->date;
+
+                if ($totalRecords === 0) {
+                    return [
+                        'program' => $program,
+                        'averageAchievement' => 0,
+                        'totalRecords' => 0,
+                        'participants' => 0,
+                        'recentUpdate' => null,
+                    ];
+                }
+
+                $scores = $targets->map(function ($target) use ($program) {
+                    if ($program->type === 'boolean') {
+                        return $target->value ? 100 : 0;
+                    }
+
+                    $programTarget = (float) ($program->target ?? 0);
+                    if ($programTarget <= 0) {
+                        return null;
+                    }
+
+                    return max(0, min(100, round(($target->value / $programTarget) * 100, 2)));
+                })->filter(fn ($value) => $value !== null);
+
+                $averageAchievement = $scores->count() > 0 ? round($scores->avg(), 1) : 0;
+
+                return [
+                    'program' => $program,
+                    'averageAchievement' => $averageAchievement,
+                    'totalRecords' => $totalRecords,
+                    'participants' => $participants,
+                    'recentUpdate' => $recentUpdate,
+                ];
+            })
+            ->sortByDesc('averageAchievement')
+            ->values();
+
         return view('admin.progress.index', [
             'userSummaries' => $userSummaries,
             'totalUsers' => $totalUsers,
@@ -96,6 +140,7 @@ class AdminProgressController extends Controller
             'totalPrograms' => $totalPrograms,
             'completedToday' => $completedToday,
             'topPerformers' => $topPerformers,
+            'programSummaries' => $programSummaries,
         ]);
     }
 

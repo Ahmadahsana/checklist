@@ -10,4 +10,9 @@ class Program extends Model
     use HasFactory;
 
     protected $fillable = ['nama_program', 'target', 'level', 'type', 'unit'];
+
+    public function userTargets()
+    {
+        return $this->hasMany(UserTarget::class);
+    }
 }

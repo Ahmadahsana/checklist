@@ -144,6 +144,54 @@
                 </table>
             </div>
         </div>
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Capaian Per Program</h2>
+                    <p class="text-sm text-gray-500">Monitoring rata-rata pencapaian dan partisipasi di setiap program.</p>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                    {{ $programSummaries->count() }} Program
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                @forelse ($programSummaries as $summary)
+                    <div class="rounded-xl border border-gray-100 p-4 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-900">{{ $summary['program']->nama_program }}</p>
+                                <p class="text-xs text-gray-500 capitalize">Level: {{ $summary['program']->level ?? '-' }} • {{ ucfirst($summary['program']->type ?? 'numeric') }}</p>
+                            </div>
+                            <span class="text-sm font-semibold text-emerald-600">{{ $summary['averageAchievement'] }}%</span>
+                        </div>
+                        <div class="mt-3 h-2 rounded-full bg-gray-100">
+                            <span class="block h-full rounded-full bg-emerald-500"
+                                style="width: {{ min(100, $summary['averageAchievement']) }}%"></span>
+                        </div>
+                        <dl class="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                            <div>
+                                <dt class="text-gray-500">Catatan</dt>
+                                <dd class="font-semibold text-gray-900">{{ $summary['totalRecords'] }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500">Peserta</dt>
+                                <dd class="font-semibold text-gray-900">{{ $summary['participants'] }}</dd>
+                            </div>
+                            <div class="col-span-2">
+                                <dt class="text-gray-500">Terakhir Update</dt>
+                                <dd class="font-semibold text-gray-900">
+                                    {{ $summary['recentUpdate'] ? \Carbon\Carbon::parse($summary['recentUpdate'])->isoFormat('D MMM YYYY') : 'Belum ada' }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">Belum ada data capaian program.</p>
+                @endforelse
+            </div>
+        </div>
     </div>
 @endsection
 
