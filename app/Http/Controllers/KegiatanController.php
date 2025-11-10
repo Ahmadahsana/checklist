@@ -46,12 +46,28 @@ class KegiatanController extends Controller
 
     public function show(Kegiatan $kegiatan)
     {
-        // dd($kegiatan);
-        $presensi = $kegiatan->with(['presensis'])->get();
+        $presensis = $kegiatan->presensis()->with('user')->get();
         $totalPeserta = User::where('role', 'user')->count();
-        $hadir = $presensi->where('status', 'hadir')->count();
-        $tidakHadir = $totalPeserta - $hadir;
+        $hadir = $presensis->where('hadir', true)->count();
+        $tidakHadir = max(0, $totalPeserta - $hadir);
+        $persentaseKehadiran = $totalPeserta > 0 ? round(($hadir / $totalPeserta) * 100, 2) : 0;
+        $persentaseKetidakhadiran = 100 - $persentaseKehadiran;
+        $presensiTidakHadir = $presensis->where('hadir', false)->values();
+        $belumHadirUsers = User::where('role', 'user')
+            ->whereDoesntHave('presensis', function ($query) use ($kegiatan) {
+                $query->where('kegiatan_id', $kegiatan->id);
+            })->get();
 
-        return view('presensi.show', compact('kegiatan', 'presensi', 'totalPeserta', 'hadir', 'tidakHadir'));
+        return view('presensi.show', [
+            'kegiatan' => $kegiatan,
+            'presensis' => $presensis,
+            'totalPeserta' => $totalPeserta,
+            'hadir' => $hadir,
+            'tidakHadir' => $tidakHadir,
+            'persentaseKehadiran' => $persentaseKehadiran,
+            'persentaseKetidakhadiran' => $persentaseKetidakhadiran,
+            'presensiTidakHadir' => $presensiTidakHadir,
+            'belumHadirUsers' => $belumHadirUsers,
+        ]);
     }
 }

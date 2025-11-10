@@ -67,6 +67,11 @@ class User extends Authenticatable
         return $this->hasOne(Payment::class);
     }
 
+    public function presensis()
+    {
+        return $this->hasMany(Presensi::class);
+    }
+
     public function kos()
     {
         return $this->belongsTo(Kos::class, 'nama_kos', 'id');

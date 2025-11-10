@@ -23,8 +23,9 @@ class Kegiatan extends Model
     // Hitung persentase kehadiran
     public function getPersentaseKehadiranAttribute()
     {
-        $totalPeserta = User::where('role', 'user')->count(); // Asumsi hanya user biasa yang dihitung
-        $hadir = $this->presensis()->where('keterangan', 'hadir')->count();
+        $totalPeserta = User::where('role', 'user')->count();
+        $hadir = $this->presensis()->where('hadir', true)->count();
+
         return $totalPeserta > 0 ? round(($hadir / $totalPeserta) * 100, 2) : 0;
     }
 
