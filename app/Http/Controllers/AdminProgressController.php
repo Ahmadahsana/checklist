@@ -20,10 +20,83 @@ class AdminProgressController extends Controller
 
     public function index()
     {
-        $users = User::where('level', '!=', 'admin')->get(); // Ambil semua user kecuali admin
-        $programs = Program::all(); // Ambil semua program untuk chart keseluruhan
+        $users = User::where('role', 'user')
+            ->with(['userTargets.program'])
+            ->get();
 
-        return view('admin.progress.index', compact('users', 'programs'));
+        $userSummaries = $users->map(function ($user) {
+            $targets = $user->userTargets;
+            $totalRecords = $targets->count();
+            $completedRecords = $targets->where('status', 'completed')->count();
+            $completionRate = $totalRecords > 0 ? round(($completedRecords / $totalRecords) * 100, 1) : 0;
+
+            $achievementScores = $targets
+                ->filter(function ($target) {
+                    $program = $target->program;
+                    if (!$program) {
+                        return false;
+                    }
+
+                    if ($program->type === 'boolean') {
+                        return true;
+                    }
+
+                    return (float) ($program->target ?? 0) > 0;
+                })
+                ->map(function ($target) {
+                    $program = $target->program;
+                    if (!$program) {
+                        return null;
+                    }
+
+                    if ($program->type === 'boolean') {
+                        return $target->value ? 100 : 0;
+                    }
+
+                    $programTarget = (float) ($program->target ?? 0);
+                    if ($programTarget <= 0) {
+                        return null;
+                    }
+
+                    return max(0, min(100, round(($target->value / $programTarget) * 100, 2)));
+                })
+                ->filter();
+
+            $averageAchievement = $achievementScores->count() > 0
+                ? round($achievementScores->avg(), 1)
+                : 0;
+
+            $recentUpdate = optional($targets->sortByDesc('date')->first())->date;
+            $activePrograms = $targets->pluck('program_id')->filter()->unique()->count();
+
+            return [
+                'user' => $user,
+                'activePrograms' => $activePrograms,
+                'totalRecords' => $totalRecords,
+                'completedRecords' => $completedRecords,
+                'completionRate' => $completionRate,
+                'averageAchievement' => $averageAchievement,
+                'recentUpdate' => $recentUpdate,
+                'pendingRecords' => max(0, $totalRecords - $completedRecords),
+            ];
+        })->sortByDesc('averageAchievement')->values();
+
+        $totalUsers = $userSummaries->count();
+        $avgAchievement = $totalUsers > 0 ? round($userSummaries->avg('averageAchievement'), 1) : 0;
+        $totalPrograms = Program::count();
+        $completedToday = UserTarget::whereDate('date', now()->toDateString())
+            ->where('status', 'completed')
+            ->count();
+        $topPerformers = $userSummaries->take(3);
+
+        return view('admin.progress.index', [
+            'userSummaries' => $userSummaries,
+            'totalUsers' => $totalUsers,
+            'avgAchievement' => $avgAchievement,
+            'totalPrograms' => $totalPrograms,
+            'completedToday' => $completedToday,
+            'topPerformers' => $topPerformers,
+        ]);
     }
 
     public function rank(Request $request)

@@ -1,252 +1,170 @@
-@extends('layouts.vertical', ['title' => 'Admin Progress'])
-
-@section('css')
-    <!-- Muat CSS ApexCharts melalui Vite -->
-    {{-- @vite(['node_modules/apexcharts/dist/apexcharts.css']) --}}
-@endsection
+@extends('layouts.vertical', ['title' => 'Ringkasan Progress'])
 
 @section('content')
-    @include("layouts.shared/page-title", ["subtitle" => "Admin", "title" => "Progress User"])
+    @include('layouts.shared.page-title', ['subtitle' => 'Admin', 'title' => 'Ringkasan Progress User'])
 
-    <div class="bg-white p-6 rounded-xl shadow-lg max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">Progress User</h1>
-
-        @if (session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg" role="alert">
-                {{ session('success') }}
+    <div class="space-y-6">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-gray-500">Total Peserta Aktif</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $totalUsers }}</p>
             </div>
-        @endif
-
-        <!-- Pencarian User -->
-        <div class="mb-6">
-            <label for="userSelect" class="block text-sm font-medium text-gray-700 mb-2">Pilih User</label>
-            <select id="userSelect" class="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                <option value="">Pilih User</option>
-                @foreach ($users as $user)
-                    <option value="{{ $user->id }}">{{ $user->nama_lengkap }} (Level: {{ $user->level }})</option>
-                @endforeach
-            </select>
+            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-gray-500">Rata-rata Pencapaian</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $avgAchievement }}%</p>
+                <div class="mt-2 h-2 rounded-full bg-gray-100">
+                    <span class="block h-full rounded-full bg-blue-600" style="width: {{ min(100, $avgAchievement) }}%"></span>
+                </div>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-gray-500">Program Terdaftar</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $totalPrograms }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-gray-500">Catatan Selesai Hari Ini</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $completedToday }}</p>
+            </div>
         </div>
 
-        <!-- Dropdown Periode -->
-        <div class="mb-6 flex gap-4 items-center">
-            <select id="periodSelect" class="w-1/2 p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="weekly">Mingguan</option>
-                <option value="monthly">6 Bulan</option>
-            </select>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <h2 class="text-lg font-semibold text-gray-900">Top Performer</h2>
+                <p class="text-sm text-gray-500">3 pengguna dengan pencapaian rata-rata tertinggi</p>
+                <ul class="mt-4 space-y-3">
+                    @forelse ($topPerformers as $index => $summary)
+                        <li class="flex items-center justify-between rounded-lg border border-gray-100 p-3">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ $summary['user']->nama_lengkap ?? $summary['user']->username }}
+                                </p>
+                                <p class="text-xs text-gray-500">Level: {{ $summary['user']->level ?? '-' }}</p>
+                            </div>
+                            <span class="text-sm font-semibold text-blue-600">{{ $summary['averageAchievement'] }}%</span>
+                        </li>
+                    @empty
+                        <li class="rounded-lg border border-dashed border-gray-200 p-3 text-center text-sm text-gray-500">
+                            Belum ada data progress.
+                        </li>
+                    @endforelse
+                </ul>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <h2 class="text-lg font-semibold text-gray-900">Catatan</h2>
+                <p class="text-sm text-gray-500">
+                    Gunakan tabel di bawah untuk memantau ketercapaian setiap user dan tindak lanjuti pengguna dengan pencapaian rendah.
+                </p>
+                <div class="mt-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                    <p class="font-semibold text-gray-800">Tips Monitoring</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-5">
+                        <li>Perhatikan kolom “Terakhir Update” untuk melihat siapa yang tidak aktif.</li>
+                        <li>Kolom “Catatan Selesai” membantu memantau kepatuhan pengisian.</li>
+                        <li>Gunakan tombol “Detail” untuk melihat progres per program.</li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
-        <!-- Chart Progress -->
-        <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Progress Tracking</h2>
-            <div id="progressChart" class="h-64"></div>
-        </div>
+        <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Progress Seluruh User</h2>
+                    <p class="text-sm text-gray-500">Ringkasan realtime berdasarkan catatan target.</p>
+                </div>
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="userProgressSearch"
+                        class="block w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Cari nama pengguna...">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Tombol untuk Progress Keseluruhan -->
-        <div class="mt-6">
-            <a href="{{ route('admin.progress.overall') }}" class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-semibold text-lg">
-                Lihat Progress Keseluruhan User
-            </a>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="userProgressTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">No</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">User</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Program Aktif</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Catatan Selesai</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Rata-rata %</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Completion Rate</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Terakhir Update</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse ($userSummaries as $index => $summary)
+                            <tr class="text-sm text-gray-700">
+                                <td class="px-4 py-3">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3">
+                                    <p class="font-medium text-gray-900">
+                                        {{ $summary['user']->nama_lengkap ?? $summary['user']->username }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">Level: {{ $summary['user']->level ?? '-' }}</p>
+                                </td>
+                                <td class="px-4 py-3">{{ $summary['activePrograms'] }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="font-semibold text-green-600">{{ $summary['completedRecords'] }}</span>
+                                    <span class="text-gray-400">/</span>
+                                    <span class="text-gray-500">{{ $summary['totalRecords'] }}</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-2 w-20 rounded-full bg-gray-100">
+                                            <span class="block h-full rounded-full bg-emerald-500"
+                                                style="width: {{ min(100, $summary['averageAchievement']) }}%"></span>
+                                        </div>
+                                        <span class="font-semibold text-gray-900">{{ $summary['averageAchievement'] }}%</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">{{ $summary['completionRate'] }}%</td>
+                                <td class="px-4 py-3 text-xs">
+                                    {{ $summary['recentUpdate'] ? \Carbon\Carbon::parse($summary['recentUpdate'])->isoFormat('D MMM YYYY') : 'Belum ada' }}
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ route('users.show', $summary['user']) }}"
+                                        class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                        Detail
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-4 py-4 text-center text-sm text-gray-500">
+                                    Belum ada catatan progress.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 @endsection
 
 @section('script')
-    <!-- Muat JS ApexCharts, Lodash, dan Preline Helper melalui Vite -->
-    {{-- @vite(['node_modules/lodash/lodash.min.js', 'node_modules/apexcharts/dist/apexcharts.min.js', 'node_modules/preline/dist/helper-apexcharts.js']) --}}
-    {{-- @vite([ 'node_modules/apexcharts/dist/apexcharts.min.js', 'node_modules/preline/dist/helper-apexcharts.js']) --}}
-
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            let chart;
-            const userSelect = document.getElementById('userSelect');
-            const periodSelect = document.getElementById('periodSelect');
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('userProgressSearch');
+            const tableRows = document.querySelectorAll('#userProgressTable tbody tr');
 
-            function formatDate(dateStr, period) {
-                const date = new Date(dateStr);
-                if (isNaN(date.getTime())) {
-                    // Jika dateStr adalah nama bulan singkat (Sep, Oct, dll.), mapping ke bahasa Indonesia
-                    const monthMap = {
-                        'Jan': 'Jan',
-                        'Feb': 'Feb',
-                        'Mar': 'Mar',
-                        'Apr': 'Apr',
-                        'May': 'Mei',
-                        'Jun': 'Jun',
-                        'Jul': 'Jul',
-                        'Aug': 'Ags',
-                        'Sep': 'Sep',
-                        'Oct': 'Okt',
-                        'Nov': 'Nov',
-                        'Dec': 'Des'
-                    };
-                    return monthMap[dateStr] || dateStr; // Kembalikan nama bulan singkat dalam bahasa Indonesia
-                }
-
-                const options = {
-                    timeZone: 'Asia/Jakarta',
-                    day: 'numeric',
-                    month: 'short', // Gunakan singkatan bulan (Sep, Okt, dll.)
-                    year: 'numeric'
-                };
-
-                if (period === 'weekly') {
-                    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }); // Misalnya "6 Mar"
-                } else { // monthly (6 bulan)
-                    return date.toLocaleDateString('id-ID', { month: 'short' }); // Misalnya "Mar"
-                }
+            if (!searchInput) {
+                return;
             }
 
-            function initializeChart(data, period = 'weekly') {
-                if (chart) {
-                    chart.destroy();
-                }
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
 
-                // Format categories ke bahasa Indonesia di frontend
-                const formattedCategories = data.categories.map(category => formatDate(category, period));
-
-                const options = {
-                    chart: {
-                        height: 250,
-                        type: 'line',
-                        toolbar: {
-                            show: false
-                        },
-                        zoom: {
-                            enabled: false
-                        }
-                    },
-                    series: data.series,
-                    dataLabels: {
-                        enabled: false
-                    },
-                    stroke: {
-                        curve: 'straight',
-                        width: [4, 4, 4],
-                        dashArray: data.series.map(item => item.dashArray || 0)
-                    },
-                    title: {
-                        show: false
-                    },
-                    legend: {
-                        show: false
-                    },
-                    grid: {
-                        strokeDashArray: 0,
-                        borderColor: '#e5e7eb',
-                        padding: {
-                            top: -20,
-                            right: 0
-                        }
-                    },
-                    xaxis: {
-                        type: 'category',
-                        categories: formattedCategories, // Gunakan kategori yang sudah diformat
-                        axisBorder: {
-                            show: false
-                        },
-                        axisTicks: {
-                            show: false
-                        },
-                        tooltip: {
-                            enabled: false
-                        },
-                        labels: {
-                            offsetY: 5,
-                            style: {
-                                colors: '#9ca3af',
-                                fontSize: '13px',
-                                fontFamily: 'Inter, ui-sans-serif',
-                                fontWeight: 400
-                            },
-                            formatter: (title) => title // Gunakan format yang sudah diformat
-                        }
-                    },
-                    yaxis: {
-                        min: 0,
-                        max: 100,
-                        tickAmount: 5,
-                        labels: {
-                            align: 'left',
-                            minWidth: 0,
-                            maxWidth: 140,
-                            style: {
-                                colors: '#9ca3af',
-                                fontSize: '12px',
-                                fontFamily: 'Inter, ui-sans-serif',
-                                fontWeight: 400
-                            },
-                            formatter: (value) => value + '%'
-                        }
-                    },
-                    tooltip: {
-                        custom: function (props) {
-                            const { categories } = props.ctx.opts.xaxis;
-                            const { seriesIndex, dataPointIndex } = props;
-                            const name = props.w.config.series[seriesIndex].name;
-                            const value = props.series[seriesIndex][dataPointIndex];
-                            const title = categories[dataPointIndex];
-
-                            return buildTooltip(props, {
-                                title: title,
-                                mode: 'light',
-                                hasTextLabel: true,
-                                wrapperExtClasses: 'min-w-36',
-                                labelDivider: ':',
-                                labelExtClasses: 'ms-2'
-                            });
-                        }
-                    },
-                    colors: ['#2563EB', '#22D3EE', '#D1D5DB'],
-                };
-
-                chart = new ApexCharts(document.querySelector('#progressChart'), options);
-                chart.render();
-            }
-
-            // Inisialisasi chart dengan data default (kosong atau placeholder)
-            initializeChart({ categories: [], series: [] }, 'weekly');
-
-            // Event listener untuk dropdown
-            userSelect.addEventListener('change', function () {
-                if (this.value) {
-                    updateChart(this.value, periodSelect.value);
-                }
-            });
-
-            periodSelect.addEventListener('change', function () {
-                if (userSelect.value) {
-                    updateChart(userSelect.value, this.value);
-                }
-            });
-
-            function updateChart(userId, period) {
-                fetch(`/admin/progress/update?user_id=${userId}&period=${period}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        console.error('Error:', data.error);
-                        alert(data.error);
-                        return;
-                    }
-                    initializeChart(data.chartData, period);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat memuat data chart. Silakan coba lagi. Detail: ' + error.message);
+                tableRows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
                 });
-            }
+            });
         });
     </script>
 @endsection
