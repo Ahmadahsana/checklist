@@ -9,7 +9,7 @@ class UserTarget extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'program_id', 'date', 'value', 'status'];
+    protected $fillable = ['user_id', 'program_id', 'date', 'value', 'status', 'score'];
 
     public function user()
     {

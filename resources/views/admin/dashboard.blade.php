@@ -101,7 +101,7 @@
             <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-900">Capaian Program Hari Ini</h2>
-                    <p class="text-sm text-gray-500">Cek rata-rata pencapaian per program untuk memastikan target realistis.</p>
+                    <p class="text-sm text-gray-500">Rata-rata pencapaian per program untuk aktivitas hari ini.</p>
                 </div>
                 <span class="rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-blue-600">
                     {{ $programSummariesToday->count() }} Program
@@ -114,9 +114,7 @@
                         <tr>
                             <th class="px-4 py-3 text-left font-medium uppercase tracking-wide text-gray-500">Program</th>
                             <th class="px-4 py-3 text-left font-medium uppercase tracking-wide text-gray-500">% Rata-rata</th>
-                            <th class="px-4 py-3 text-left font-medium uppercase tracking-wide text-gray-500">Catatan</th>
                             <th class="px-4 py-3 text-left font-medium uppercase tracking-wide text-gray-500">Peserta</th>
-                            <th class="px-4 py-3 text-left font-medium uppercase tracking-wide text-gray-500">Terakhir Update</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -135,15 +133,11 @@
                                         <span class="font-semibold text-gray-900">{{ $summary['averageAchievement'] }}%</span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3">{{ $summary['records'] }}</td>
                                 <td class="px-4 py-3">{{ $summary['participants'] }}</td>
-                                <td class="px-4 py-3 text-xs">
-                                    {{ $summary['lastUpdate'] ? \Carbon\Carbon::parse($summary['lastUpdate'])->isoFormat('D MMM YYYY HH:mm') : 'Belum ada' }}
-                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500">
+                                <td colspan="3" class="px-4 py-4 text-center text-sm text-gray-500">
                                     Belum ada capaian program hari ini.
                                 </td>
                             </tr>

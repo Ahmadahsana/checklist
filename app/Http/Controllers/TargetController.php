@@ -38,7 +38,15 @@ class TargetController extends Controller
             ->groupBy('user_id')
             ->map(function ($records) {
                 $user = $records->first()->user;
-                $scores = $records->map(fn($target) => $this->calculateTargetAchievement($target))->filter();
+                $scores = $records->map(function ($target) {
+                    if (isset($target->score)) {
+                        return $target->score;
+                    }
+                    return $this->calculateTargetAchievement($target);
+                })->filter(function ($val) {
+                    return is_numeric($val);
+                });
+
                 $averageAchievement = $scores->count() > 0 ? round($scores->avg(), 1) : 0;
                 $completed = $records->where('status', 'completed')->count();
                 $lastUpdate = optional($records->sortByDesc('updated_at')->first())->updated_at;

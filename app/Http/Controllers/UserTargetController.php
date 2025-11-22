@@ -158,6 +158,7 @@ class UserTargetController extends Controller
                 $program = Program::find($programId);
 
                 $valueToSave = $program->type === 'boolean' ? ($value === '1' ? 1 : 0) : $value;
+                $score = $this->calculatePercentage($program, $valueToSave);
 
                 $existingTarget = UserTarget::where('user_id', $user->id)
                     ->where('program_id', $programId)
@@ -167,7 +168,11 @@ class UserTargetController extends Controller
                 if ($existingTarget) {
                     // Jika update, simpan nilai lama untuk perhitungan inkremental
                     $oldValue = $existingTarget->value;
-                    $existingTarget->update(['value' => $valueToSave, 'status' => 'completed']);
+                    $existingTarget->update([
+                        'value' => $valueToSave,
+                        'status' => 'completed',
+                        'score' => $score,
+                    ]);
                 } else {
                     // Jika insert, tidak ada nilai lama
                     $oldValue = null;
@@ -177,6 +182,7 @@ class UserTargetController extends Controller
                         'date' => $date,
                         'value' => $valueToSave,
                         'status' => 'completed',
+                        'score' => $score,
                     ]);
                 }
 

@@ -90,10 +90,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">No</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">User</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Program Aktif</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Catatan Selesai</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Rata-rata %</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Completion Rate</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Terakhir Update</th>
                             <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Aksi</th>
                         </tr>
                     </thead>
@@ -109,11 +106,6 @@
                                 </td>
                                 <td class="px-4 py-3">{{ $summary['activePrograms'] }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="font-semibold text-green-600">{{ $summary['completedRecords'] }}</span>
-                                    <span class="text-gray-400">/</span>
-                                    <span class="text-gray-500">{{ $summary['totalRecords'] }}</span>
-                                </td>
-                                <td class="px-4 py-3">
                                     <div class="flex items-center gap-2">
                                         <div class="h-2 w-20 rounded-full bg-gray-100">
                                             <span class="block h-full rounded-full bg-emerald-500"
@@ -121,10 +113,6 @@
                                         </div>
                                         <span class="font-semibold text-gray-900">{{ $summary['averageAchievement'] }}%</span>
                                     </div>
-                                </td>
-                                <td class="px-4 py-3">{{ $summary['completionRate'] }}%</td>
-                                <td class="px-4 py-3 text-xs">
-                                    {{ $summary['recentUpdate'] ? \Carbon\Carbon::parse($summary['recentUpdate'])->isoFormat('D MMM YYYY') : 'Belum ada' }}
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('users.show', $summary['user']) }}"
@@ -178,12 +166,6 @@
                             <div>
                                 <dt class="text-gray-500">Peserta</dt>
                                 <dd class="font-semibold text-gray-900">{{ $summary['participants'] }}</dd>
-                            </div>
-                            <div class="col-span-2">
-                                <dt class="text-gray-500">Terakhir Update</dt>
-                                <dd class="font-semibold text-gray-900">
-                                    {{ $summary['recentUpdate'] ? \Carbon\Carbon::parse($summary['recentUpdate'])->isoFormat('D MMM YYYY') : 'Belum ada' }}
-                                </dd>
                             </div>
                         </dl>
                     </div>
