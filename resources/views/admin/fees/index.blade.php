@@ -40,28 +40,32 @@
                     <th class="py-2 px-4 border-r">Aksi</th>
                 </tr>
             </thead>
-            <tbody>
+                <tbody>
                 @foreach ($users as $user)
+                    @php $payment = $user->payments; @endphp
                     <tr class="border-b">
                         <td class="py-2 px-4 border-r">{{ $loop->iteration }}</td>
                         <td class="py-2 px-4 border-r">{{ $user->nama_lengkap }}</td>
                         <td class="py-2 px-4 border-r">{{ $user->level }}</td>
                         <td class="py-2 px-4 border-r">{{ $user->kos->nama_kos }}</td>
                         <td class="py-2 px-4 border-r">Rp {{ number_format($user->harga_kos ?? 0, 0, ',', '.') }}</td>
-                        <td class="py-2 px-4 border-r">Rp {{ number_format($user->payments->kurang ?? 0, 0, ',', '.') }}</td>
+                        <td class="py-2 px-4 border-r">Rp {{ number_format($payment->kurang ?? 0, 0, ',', '.') }}</td>
                         <td class="py-2 px-4 border-r">
-                            {{-- {{ $user->payments->status }} --}}
-                            @if ($user->payments->status === 'belum')
+                            @if ($payment && $payment->status === 'belum')
                                 <span class="bg-red-100 text-red-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                                    {{ $user->payments->status }} lunas
+                                    {{ $payment->status }} lunas
                                 </span>
-                            @elseif ($user->payments->status === 'lunas')
+                            @elseif ($payment && $payment->status === 'lunas')
                                 <span class="bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                                    {{ $user->payments->status }}
+                                    {{ $payment->status }}
+                                </span>
+                            @elseif ($payment && $payment->status)
+                                <span class="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                                    {{ $payment->status }}
                                 </span>
                             @else
                                 <span class="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                                    {{ $user->payments->status }}
+                                    belum ada data
                                 </span>
                             @endif
                         </td>

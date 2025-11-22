@@ -162,7 +162,7 @@
 
             <div class="mb-4">
                 <label for="no_hp_ortu" class="block text-sm font-medium text-gray-700">No.HP ortu</label>
-                <input type="tel" min="11" name="no_hp_ortu" id="no_hp_ortu" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <input type="tel" min="11" required name="no_hp_ortu" id="no_hp_ortu" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 @error('no_hp_ortu')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror

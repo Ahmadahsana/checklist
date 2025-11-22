@@ -8,6 +8,7 @@ use App\Models\UserTarget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class UserTargetController extends Controller
 {
@@ -705,8 +706,10 @@ class UserTargetController extends Controller
                     $categories[] = $date; // Gunakan format numerik (YYYY-MM-DD) untuk mingguan
                 }
             } else { // monthly (6 bulan terakhir)
-                $categoriesData = $this->prepareChartDataByMonth($user, $programs, 6); // Gunakan logika dari Progress Personal
-                $categories = $categoriesData['categories'];
+                $startMonth = Carbon::now()->subMonths(5)->startOfMonth();
+                for ($i = 0; $i < 6; $i++) {
+                    $categories[] = $startMonth->copy()->addMonths($i)->format('M');
+                }
             }
 
             foreach ($programs as $program) {
@@ -717,33 +720,49 @@ class UserTargetController extends Controller
                     ->get()
                     ->groupBy('date');
 
+                $flatTargets = $programTargets->flatten();
+
                 $data = [];
                 foreach ($categories as $category) {
                     if ($period === 'weekly') {
                         $date = $category; // Format Y-m-d langsung digunakan
                         $target = $programTargets->get($date, collect())->first();
-                        $data[] = $target ? ($target->value / $program->target) * 100 : 0;
+                        if (!$target) {
+                            $data[] = 0;
+                            continue;
+                        }
+
+                        if ($program->type === 'boolean') {
+                            $data[] = $target->value ? 100 : 0;
+                        } else {
+                            $programTarget = (float) ($program->target ?? 0);
+                            $data[] = $programTarget > 0 ? ($target->value / $programTarget) * 100 : 0;
+                        }
                     } else { // monthly
                         $month = $category; // Nama bulan singkat (Sep, Oct, dll.)
-                        $monthTargets = $programTargets->filter(function ($target) use ($month) {
-                            if ($target instanceof App\Models\UserTarget) { // Pastikan namespace sesuai
-                                return \Carbon\Carbon::parse($target->date)->format('M') === $month;
-                            }
-                            return false; // Skip jika bukan model
+                        $monthTargets = $flatTargets->filter(function ($target) use ($month) {
+                            return $target instanceof UserTarget
+                                && Carbon::parse($target->date)->format('M') === $month;
                         });
-                        $totalValue = 0;
-                        $count = 0;
-                        foreach ($monthTargets as $target) {
-                            if ($target instanceof App\Models\UserTarget) { // Pastikan namespace sesuai
-                                if ($program->type === 'boolean') {
-                                    $totalValue += $target->value == 1 ? 100 : 0;
-                                } else { // numeric
-                                    $totalValue += ($target->value / $program->target) * 100;
-                                }
-                                $count++;
-                            }
+
+                        $count = $monthTargets->count();
+                        if ($count === 0) {
+                            $data[] = 0;
+                            continue;
                         }
-                        $data[] = $count > 0 ? round($totalValue / $count, 2) : 0;
+
+                        $totalValue = $monthTargets->reduce(function ($carry, $target) use ($program) {
+                            if ($program->type === 'boolean') {
+                                return $carry + ($target->value == 1 ? 100 : 0);
+                            }
+                            $programTarget = (float) ($program->target ?? 0);
+                            if ($programTarget <= 0) {
+                                return $carry;
+                            }
+                            return $carry + (($target->value / $programTarget) * 100);
+                        }, 0);
+
+                        $data[] = round($totalValue / $count, 2);
                     }
                 }
                 $series[] = [

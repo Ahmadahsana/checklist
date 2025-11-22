@@ -20,10 +20,10 @@
                 <p class="text-sm text-gray-500">Program Terdaftar</p>
                 <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $totalPrograms }}</p>
             </div>
-            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            {{-- <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                 <p class="text-sm text-gray-500">Catatan Selesai Hari Ini</p>
                 <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $completedToday }}</p>
-            </div>
+            </div> --}}
         </div>
 
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">

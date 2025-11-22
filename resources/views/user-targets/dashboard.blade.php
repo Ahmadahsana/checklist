@@ -77,8 +77,8 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-gray-800">Progress Tracking</h2>
                 <div class="flex gap-2">
-                    <button id="periodWeekly" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:bg-blue-700">Mingguan</button>
-                    <button id="periodMonthly" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 focus:outline-none focus:bg-gray-300">6 Bulan</button>
+                    <button id="periodWeekly" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:bg-blue-700 active-period">Mingguan</button>
+                    <button id="periodMonthly" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-blue-700 hover:text-white focus:outline-none">6 Bulan</button>
                 </div>
             </div>
 
@@ -250,23 +250,8 @@
                         }
                     },
                     tooltip: {
-                        
-                        formatter: (value) => value + '%',
-                        custom: function (props) {
-                            const { categories } = props.ctx.opts.xaxis;
-                            const { seriesIndex, dataPointIndex } = props;
-                            const name = props.w.config.series[seriesIndex].name;
-                            const value = props.series[seriesIndex][dataPointIndex];
-                            const title = categories[dataPointIndex];
-
-                            return buildTooltip(props, {
-                                title: title,
-                                mode: 'light',
-                                hasTextLabel: true,
-                                wrapperExtClasses: 'min-w-36',
-                                labelDivider: ':',
-                                labelExtClasses: 'ms-2'
-                            });
+                        y: {
+                            formatter: (val) => `${val}%`
                         }
                     },
                     colors: ['#2563EB', '#22D3EE', '#D1D5DB'],
@@ -279,12 +264,31 @@
             // Inisialisasi chart dengan data awal (weekly)
             initializeChart(chartData, 'weekly');
 
+            const periodWeeklyBtn = document.getElementById('periodWeekly');
+            const periodMonthlyBtn = document.getElementById('periodMonthly');
+
+            function setActiveButton(period) {
+                if (period === 'weekly') {
+                    periodWeeklyBtn.classList.add('bg-blue-600', 'text-white', 'active-period');
+                    periodWeeklyBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                    periodMonthlyBtn.classList.remove('bg-blue-600', 'text-white', 'active-period');
+                    periodMonthlyBtn.classList.add('bg-gray-200', 'text-gray-800');
+                } else {
+                    periodMonthlyBtn.classList.add('bg-blue-600', 'text-white', 'active-period');
+                    periodMonthlyBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                    periodWeeklyBtn.classList.remove('bg-blue-600', 'text-white', 'active-period');
+                    periodWeeklyBtn.classList.add('bg-gray-200', 'text-gray-800');
+                }
+            }
+
             // Event listener untuk tombol periode
-            document.getElementById('periodWeekly').addEventListener('click', function () {
+            periodWeeklyBtn.addEventListener('click', function () {
+                setActiveButton('weekly');
                 updateChart('weekly');
             });
 
-            document.getElementById('periodMonthly').addEventListener('click', function () {
+            periodMonthlyBtn.addEventListener('click', function () {
+                setActiveButton('monthly');
                 updateChart('monthly');
             });
 

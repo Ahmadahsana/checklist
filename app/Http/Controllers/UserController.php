@@ -28,6 +28,87 @@ class UserController extends Controller
         return view('users.index', compact('users'));
     }
 
+    public function export()
+    {
+        $filename = 'users-' . now()->format('Ymd-His') . '.xls';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = [
+            'ID',
+            'Username',
+            'Nama Lengkap',
+            'Email',
+            'No HP',
+            'Role',
+            'Level',
+            'Tempat Lahir',
+            'Tanggal Lahir',
+            'Alamat Asal',
+            'Prodi',
+            'Fakultas',
+            'Angkatan',
+            'Nama Ayah',
+            'Nama Ibu',
+            'No HP Ortu',
+            'No HP Saudara/Wali',
+            'Nama Kos',
+            'Harga Kos',
+            'Status',
+            'Dibuat',
+            'Diubah',
+        ];
+
+        $escape = function ($value) {
+            return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        };
+
+        $callback = function () use ($columns, $escape) {
+            echo "\xEF\xBB\xBF"; // BOM untuk Excel UTF-8
+            echo "<table border='1'><thead><tr>";
+            foreach ($columns as $col) {
+                echo "<th>{$escape($col)}</th>";
+            }
+            echo "</tr></thead><tbody>";
+
+            User::orderBy('id')->chunk(200, function ($users) use ($escape) {
+                foreach ($users as $user) {
+                    echo "<tr>";
+                    echo "<td>{$escape($user->id)}</td>";
+                    echo "<td>{$escape($user->username)}</td>";
+                    echo "<td>{$escape($user->nama_lengkap)}</td>";
+                    echo "<td>{$escape($user->email)}</td>";
+                    echo "<td>{$escape($user->no_hp)}</td>";
+                    echo "<td>{$escape($user->role)}</td>";
+                    echo "<td>{$escape($user->level)}</td>";
+                    echo "<td>{$escape($user->tempat_lahir)}</td>";
+                    echo "<td>{$escape($user->tanggal_lahir)}</td>";
+                    echo "<td>{$escape($user->alamat_asal)}</td>";
+                    echo "<td>{$escape($user->prodi)}</td>";
+                    echo "<td>{$escape($user->fakultas)}</td>";
+                    echo "<td>{$escape($user->angkatan)}</td>";
+                    echo "<td>{$escape($user->nama_ayah)}</td>";
+                    echo "<td>{$escape($user->nama_ibu)}</td>";
+                    echo "<td>{$escape($user->no_hp_ortu)}</td>";
+                    echo "<td>{$escape($user->no_hp_saudara_wali)}</td>";
+                    echo "<td>{$escape($user->nama_kos)}</td>";
+                    echo "<td>{$escape($user->harga_kos)}</td>";
+                    echo "<td>{$escape($user->status)}</td>";
+                    echo "<td>{$escape(optional($user->created_at)->format('Y-m-d H:i:s'))}</td>";
+                    echo "<td>{$escape(optional($user->updated_at)->format('Y-m-d H:i:s'))}</td>";
+                    echo "</tr>";
+                }
+            });
+
+            echo "</tbody></table>";
+        };
+
+        return response()->streamDownload($callback, $filename, $headers);
+    }
+
 
     public function validasi_user()
     {

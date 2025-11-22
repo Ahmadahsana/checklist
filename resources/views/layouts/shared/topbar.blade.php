@@ -24,13 +24,13 @@
 
             <!-- Notification Dropdown Button -->
             <div class="hs-dropdown relative inline-flex [--placement:bottom-right]">
-                <button type="button"
+                {{-- <button type="button"
                     class="hs-dropdown-toggle inline-flex items-center p-2 rounded-full bg-white border border-default-200 hover:bg-primary/15 hover:text-primary transition-all">
                     <i class="i-ph-bell-duotone text-2xl"></i>
-                </button>
+                </button> --}}
 
                 <!-- Dropdown menu -->
-                <div
+                {{-- <div
                     class="hs-dropdown-menu duration mt-2 w-full max-w-sm rounded-lg border border-default-200 bg-white opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100 hidden">
                     <div class="block px-4 py-2 font-medium text-center text-default-700 rounded-t-lg bg-default-50">
                         Notifications
@@ -123,7 +123,7 @@
                             View all
                         </div>
                     </a>
-                </div>
+                </div> --}}
             </div>
 
             
@@ -140,10 +140,10 @@
                 href="{{ route('profile.edit') }}">
                 Profile
             </a>
-            <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
+            {{-- <a class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100"
                 href="#">
                 Settings
-            </a>
+            </a> --}}
             <hr class="my-2">
             <form method="POST" action="{{ route('logout') }}" class="flex items-center py-2 px-3 rounded-md text-sm text-default-800 hover:bg-default-100">
                 @csrf

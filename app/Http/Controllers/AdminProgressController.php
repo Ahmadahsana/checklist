@@ -8,6 +8,7 @@ use App\Models\ProgressBulanan;
 use App\Models\UserTarget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AdminProgressController extends Controller
 {
@@ -118,7 +119,7 @@ class AdminProgressController extends Controller
                     }
 
                     return max(0, min(100, round(($target->value / $programTarget) * 100, 2)));
-                })->filter(fn ($value) => $value !== null);
+                })->filter(fn($value) => $value !== null);
 
                 $averageAchievement = $scores->count() > 0 ? round($scores->avg(), 1) : 0;
 
@@ -204,6 +205,8 @@ class AdminProgressController extends Controller
                 ->get()
                 ->groupBy('date');
 
+            $flatTargets = $programTargets->flatten();
+
             $data = [];
             foreach ($categories as $category) {
                 if ($period === 'weekly') {
@@ -212,25 +215,29 @@ class AdminProgressController extends Controller
                     $data[] = $target ? ($target->value / $program->target) * 100 : 0;
                 } else { // monthly
                     $month = $category; // Nama bulan singkat (Sep, Oct, dll.)
-                    $monthTargets = $programTargets->filter(function ($target) use ($month) {
-                        if ($target instanceof App\Models\UserTarget) {
-                            return \Carbon\Carbon::parse($target->date)->format('M') === $month;
-                        }
-                        return false; // Skip jika bukan model
+                    $monthTargets = $flatTargets->filter(function ($target) use ($month) {
+                        return $target instanceof UserTarget
+                            && Carbon::parse($target->date)->format('M') === $month;
                     });
-                    $totalValue = 0;
-                    $count = 0;
-                    foreach ($monthTargets as $target) {
-                        if ($target instanceof App\Models\UserTarget) {
-                            if ($program->type === 'boolean') {
-                                $totalValue += $target->value == 1 ? 100 : 0;
-                            } else { // numeric
-                                $totalValue += ($target->value / $program->target) * 100;
-                            }
-                            $count++;
-                        }
+
+                    $count = $monthTargets->count();
+                    if ($count === 0) {
+                        $data[] = 0;
+                        continue;
                     }
-                    $data[] = $count > 0 ? round($totalValue / $count, 2) : 0;
+
+                    $totalValue = $monthTargets->reduce(function ($carry, $target) use ($program) {
+                        if ($program->type === 'boolean') {
+                            return $carry + ($target->value == 1 ? 100 : 0);
+                        }
+                        $programTarget = (float) ($program->target ?? 0);
+                        if ($programTarget <= 0) {
+                            return $carry;
+                        }
+                        return $carry + (($target->value / $programTarget) * 100);
+                    }, 0);
+
+                    $data[] = round($totalValue / $count, 2);
                 }
             }
             $series[] = [
@@ -378,7 +385,7 @@ class AdminProgressController extends Controller
                 } else { // monthly
                     $month = $category; // Nama bulan singkat (Sep, Oct, dll.)
                     $monthTargets = $programTargets->filter(function ($target) use ($month) {
-                        if ($target instanceof App\Models\UserTarget) {
+                        if ($target instanceof UserTarget) {
                             return \Carbon\Carbon::parse($target->date)->format('M') === $month;
                         }
                         return false; // Skip jika bukan model
@@ -386,7 +393,7 @@ class AdminProgressController extends Controller
                     $totalValue = 0;
                     $count = 0;
                     foreach ($monthTargets as $target) {
-                        if ($target instanceof App\Models\UserTarget) {
+                        if ($target instanceof UserTarget) {
                             if ($program->type === 'boolean') {
                                 $totalValue += $target->value == 1 ? 100 : 0;
                             } else { // numeric

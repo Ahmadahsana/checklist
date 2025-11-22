@@ -43,6 +43,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show'); // Route untuk detail user
     Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset.password');
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('users.destroy'); // Route untuk hapus
@@ -55,7 +56,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/dashboard/update', [UserTargetController::class, 'updateDashboardChart'])->name('dashboard.update');
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     // Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');

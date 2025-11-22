@@ -188,21 +188,8 @@
                         }
                     },
                     tooltip: {
-                        custom: function (props) {
-                            const { categories } = props.ctx.opts.xaxis;
-                            const { seriesIndex, dataPointIndex } = props;
-                            const name = props.w.config.series[seriesIndex].name;
-                            const value = props.series[seriesIndex][dataPointIndex];
-                            const title = categories[dataPointIndex];
-
-                            return buildTooltip(props, {
-                                title: title,
-                                mode: 'light',
-                                hasTextLabel: true,
-                                wrapperExtClasses: 'min-w-36',
-                                labelDivider: ':',
-                                labelExtClasses: 'ms-2'
-                            });
+                        y: {
+                            formatter: (val) => `${val}%`
                         }
                     },
                     colors: ['#2563EB', '#22D3EE', '#D1D5DB'],
