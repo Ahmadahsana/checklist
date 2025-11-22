@@ -21,118 +21,56 @@ class AdminProgressController extends Controller
 
     public function index()
     {
-        $users = User::where('role', 'user')
-            ->with(['userTargets.program'])
-            ->get();
+        // Progress keseluruhan (semua tanggal)
+        $allTargets = UserTarget::with(['user', 'program'])->get();
+        $validTargets = $allTargets->filter(fn($t) => $t->user && $t->program);
 
-        $userSummaries = $users->map(function ($user) {
-            $targets = $user->userTargets;
+        $groupedByUser = $validTargets->groupBy('user_id');
 
-            $achievementScores = $targets
-                ->filter(function ($target) {
-                    $program = $target->program;
-                    if (!$program) {
-                        return false;
-                    }
+        $userSummaries = $groupedByUser->map(function ($records) {
+            $user = $records->first()->user;
 
-                    if ($program->type === 'boolean') {
-                        return true;
-                    }
+            $scores = $records->map(fn($target) => $this->calculateTargetScore($target))
+                ->filter(fn($val) => is_numeric($val));
 
-                    return (float) ($program->target ?? 0) > 0;
-                })
-                ->map(function ($target) {
-                    $program = $target->program;
-                    if (!$program) {
-                        return null;
-                    }
-
-                    if ($target->score !== null) {
-                        return (float) $target->score;
-                    }
-
-                    if ($program->type === 'boolean') {
-                        return $target->value ? 100 : 0;
-                    }
-
-                    $programTarget = (float) ($program->target ?? 0);
-                    if ($programTarget <= 0) {
-                        return null;
-                    }
-
-                    return max(0, min(100, round(($target->value / $programTarget) * 100, 2)));
-                })
-                ->filter();
-
-            $totalRecords = $achievementScores->count();
-            $completedRecords = $achievementScores->filter(fn($score) => $score >= 100)->count();
-
-            $averageAchievement = $achievementScores->count() > 0
-                ? round($achievementScores->avg(), 1)
-                : 0;
-
-            $activePrograms = $targets->pluck('program_id')->filter()->unique()->count();
+            $averageAchievement = $scores->count() > 0 ? round($scores->avg(), 1) : 0;
+            $activePrograms = $records->pluck('program_id')->filter()->unique()->count();
 
             return [
                 'user' => $user,
                 'activePrograms' => $activePrograms,
-                'totalRecords' => $totalRecords,
-                'completedRecords' => $completedRecords,
                 'averageAchievement' => $averageAchievement,
-                'pendingRecords' => max(0, $totalRecords - $completedRecords),
             ];
-        })->sortByDesc('averageAchievement')->values();
+        })
+            ->sortByDesc('averageAchievement')
+            ->values();
 
-        $totalUsers = $userSummaries->count();
+        $totalUsers = $groupedByUser->count();
         $avgAchievement = $totalUsers > 0 ? round($userSummaries->avg('averageAchievement'), 1) : 0;
         $totalPrograms = Program::count();
-        $completedToday = UserTarget::whereDate('date', now()->toDateString())
-            ->where('status', 'completed')
-            ->count();
+        $completedTotal = $validTargets->where('status', 'completed')->count();
         $topPerformers = $userSummaries->take(3);
 
-        $programSummaries = Program::with('userTargets')
-            ->get()
-            ->map(function ($program) {
-                $targets = $program->userTargets;
-                $totalRecords = $targets->count();
-                $participants = $targets->pluck('user_id')->unique()->count();
-
-                if ($totalRecords === 0) {
-                    return [
-                        'program' => $program,
-                        'averageAchievement' => 0,
-                        'totalRecords' => 0,
-                        'participants' => 0,
-                    ];
+        $programSummaries = $validTargets
+            ->groupBy('program_id')
+            ->map(function ($records) {
+                $program = $records->first()->program;
+                if (!$program) {
+                    return null;
                 }
 
-                $scores = $targets->map(function ($target) use ($program) {
-                    if ($target->score !== null) {
-                        return (float) $target->score;
-                    }
-
-                    if ($program->type === 'boolean') {
-                        return $target->value ? 100 : 0;
-                    }
-
-                    $programTarget = (float) ($program->target ?? 0);
-                    if ($programTarget <= 0) {
-                        return null;
-                    }
-
-                    return max(0, min(100, round(($target->value / $programTarget) * 100, 2)));
-                })->filter(fn($value) => $value !== null);
+                $scores = $records->map(fn($target) => $this->calculateTargetScore($target))
+                    ->filter(fn($val) => is_numeric($val));
 
                 $averageAchievement = $scores->count() > 0 ? round($scores->avg(), 1) : 0;
 
                 return [
                     'program' => $program,
                     'averageAchievement' => $averageAchievement,
-                    'totalRecords' => $totalRecords,
-                    'participants' => $participants,
+                    'participants' => $records->pluck('user_id')->unique()->count(),
                 ];
             })
+            ->filter()
             ->sortByDesc('averageAchievement')
             ->values();
 
@@ -141,7 +79,7 @@ class AdminProgressController extends Controller
             'totalUsers' => $totalUsers,
             'avgAchievement' => $avgAchievement,
             'totalPrograms' => $totalPrograms,
-            'completedToday' => $completedToday,
+            'completedToday' => $completedTotal,
             'topPerformers' => $topPerformers,
             'programSummaries' => $programSummaries,
         ]);
@@ -422,5 +360,29 @@ class AdminProgressController extends Controller
         // \Log::info('Admin User Progress Chart Data for user ' . $userId . ' and period ' . $period, $chartData);
 
         return response()->json(['chartData' => $chartData]);
+    }
+
+    private function calculateTargetScore(UserTarget $target): ?float
+    {
+        $program = $target->program;
+
+        if (!$program) {
+            return null;
+        }
+
+        if ($target->score !== null) {
+            return (float) $target->score;
+        }
+
+        if ($program->type === 'boolean') {
+            return $target->value ? 100 : 0;
+        }
+
+        $programTarget = (float) ($program->target ?? 0);
+        if ($programTarget <= 0) {
+            return null;
+        }
+
+        return max(0, min(100, round(($target->value / $programTarget) * 100, 2)));
     }
 }

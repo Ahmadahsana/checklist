@@ -532,20 +532,16 @@ class UserTargetController extends Controller
             return 0;
         }
 
-        $totalPrograms = $programs->count();
-        $totalProgress = 0;
+        $scores = $targets->map(function ($target) {
+            return $this->calculateTargetScore($target);
+        })->filter(fn($val) => is_numeric($val));
 
-        foreach ($targets as $target) {
-            $program = $target->program;
-            if ($program->type === 'boolean') {
-                $totalProgress += $target->value == 1 ? 100 : 0;
-            } else { // numeric
-                $progress = ($target->value / $program->target) * 100;
-                $totalProgress += $progress;
-            }
+        $totalRecords = $scores->count();
+        if ($totalRecords === 0) {
+            return 0;
         }
 
-        return $totalPrograms > 0 ? round($totalProgress / $totalPrograms, 2) : 0;
+        return round($scores->avg(), 2);
     }
 
     // private function prepareOverallChartData($user, $programs, $startDate)
@@ -619,11 +615,7 @@ class UserTargetController extends Controller
             $data = [];
             foreach ($categories as $date) {
                 $target = $programTargets->get($date, collect())->first();
-                if ($program->type === 'boolean') {
-                    $data[] = $target && $target->value == 1 ? 100 : 0;
-                } else { // numeric
-                    $data[] = $target ? ($target->value / $program->target) * 100 : 0;
-                }
+                $data[] = $target ? ($this->calculateTargetScore($target) ?? 0) : 0;
             }
             $series[] = [
                 'name' => $program->nama_program,
@@ -636,6 +628,30 @@ class UserTargetController extends Controller
             'categories' => $categories, // Kirim dalam format Y-m-d
             'series' => $series,
         ];
+    }
+
+    private function calculateTargetScore(UserTarget $target): ?float
+    {
+        $program = $target->program;
+
+        if (!$program) {
+            return null;
+        }
+
+        if ($target->score !== null) {
+            return (float) $target->score;
+        }
+
+        if ($program->type === 'boolean') {
+            return $target->value ? 100 : 0;
+        }
+
+        $programTarget = (float) ($program->target ?? 0);
+        if ($programTarget <= 0) {
+            return null;
+        }
+
+        return max(0, min(100, round(($target->value / $programTarget) * 100, 2)));
     }
 
     // public function updateDashboardChart(Request $request)

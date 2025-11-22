@@ -6,6 +6,10 @@
     <div class="space-y-6">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-gray-500">Total Semua User</p>
+                <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $totalUsers }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                 <p class="text-sm text-gray-500">Total Peserta Aktif</p>
                 <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $totalUsers }}</p>
             </div>
@@ -154,20 +158,16 @@
                             </div>
                             <span class="text-sm font-semibold text-emerald-600">{{ $summary['averageAchievement'] }}%</span>
                         </div>
-                        <div class="mt-3 h-2 rounded-full bg-gray-100">
-                            <span class="block h-full rounded-full bg-emerald-500"
-                                style="width: {{ min(100, $summary['averageAchievement']) }}%"></span>
-                        </div>
-                        <dl class="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600">
-                            <div>
-                                <dt class="text-gray-500">Catatan</dt>
-                                <dd class="font-semibold text-gray-900">{{ $summary['totalRecords'] }}</dd>
+                            <div class="mt-3 h-2 rounded-full bg-gray-100">
+                                <span class="block h-full rounded-full bg-emerald-500"
+                                    style="width: {{ min(100, $summary['averageAchievement']) }}%"></span>
                             </div>
+                            <dl class="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600">
                             <div>
                                 <dt class="text-gray-500">Peserta</dt>
                                 <dd class="font-semibold text-gray-900">{{ $summary['participants'] }}</dd>
                             </div>
-                        </dl>
+                            </dl>
                     </div>
                 @empty
                     <p class="text-sm text-gray-500">Belum ada data capaian program.</p>
