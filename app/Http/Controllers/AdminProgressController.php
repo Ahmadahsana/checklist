@@ -27,9 +27,6 @@ class AdminProgressController extends Controller
 
         $userSummaries = $users->map(function ($user) {
             $targets = $user->userTargets;
-            $totalRecords = $targets->count();
-            $completedRecords = $targets->where('status', 'completed')->count();
-            $completionRate = $totalRecords > 0 ? round(($completedRecords / $totalRecords) * 100, 1) : 0;
 
             $achievementScores = $targets
                 ->filter(function ($target) {
@@ -50,6 +47,10 @@ class AdminProgressController extends Controller
                         return null;
                     }
 
+                    if ($target->score !== null) {
+                        return (float) $target->score;
+                    }
+
                     if ($program->type === 'boolean') {
                         return $target->value ? 100 : 0;
                     }
@@ -63,11 +64,13 @@ class AdminProgressController extends Controller
                 })
                 ->filter();
 
+            $totalRecords = $achievementScores->count();
+            $completedRecords = $achievementScores->filter(fn($score) => $score >= 100)->count();
+
             $averageAchievement = $achievementScores->count() > 0
                 ? round($achievementScores->avg(), 1)
                 : 0;
 
-            $recentUpdate = optional($targets->sortByDesc('date')->first())->date;
             $activePrograms = $targets->pluck('program_id')->filter()->unique()->count();
 
             return [
@@ -75,9 +78,7 @@ class AdminProgressController extends Controller
                 'activePrograms' => $activePrograms,
                 'totalRecords' => $totalRecords,
                 'completedRecords' => $completedRecords,
-                'completionRate' => $completionRate,
                 'averageAchievement' => $averageAchievement,
-                'recentUpdate' => $recentUpdate,
                 'pendingRecords' => max(0, $totalRecords - $completedRecords),
             ];
         })->sortByDesc('averageAchievement')->values();
@@ -96,7 +97,6 @@ class AdminProgressController extends Controller
                 $targets = $program->userTargets;
                 $totalRecords = $targets->count();
                 $participants = $targets->pluck('user_id')->unique()->count();
-                $recentUpdate = optional($targets->sortByDesc('date')->first())->date;
 
                 if ($totalRecords === 0) {
                     return [
@@ -104,11 +104,14 @@ class AdminProgressController extends Controller
                         'averageAchievement' => 0,
                         'totalRecords' => 0,
                         'participants' => 0,
-                        'recentUpdate' => null,
                     ];
                 }
 
                 $scores = $targets->map(function ($target) use ($program) {
+                    if ($target->score !== null) {
+                        return (float) $target->score;
+                    }
+
                     if ($program->type === 'boolean') {
                         return $target->value ? 100 : 0;
                     }
@@ -128,7 +131,6 @@ class AdminProgressController extends Controller
                     'averageAchievement' => $averageAchievement,
                     'totalRecords' => $totalRecords,
                     'participants' => $participants,
-                    'recentUpdate' => $recentUpdate,
                 ];
             })
             ->sortByDesc('averageAchievement')
