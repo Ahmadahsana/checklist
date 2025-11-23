@@ -27,8 +27,8 @@ class AdminProgressController extends Controller
 
         $groupedByUser = $validTargets->groupBy('user_id');
 
-        $userSummaries = $groupedByUser->map(function ($records) {
-            $user = $records->first()->user;
+        $userSummaries = User::where('role', 'user')->get()->map(function ($user) use ($groupedByUser) {
+            $records = $groupedByUser->get($user->id, collect());
 
             $scores = $records->map(fn($target) => $this->calculateTargetScore($target))
                 ->filter(fn($val) => is_numeric($val));
@@ -41,11 +41,9 @@ class AdminProgressController extends Controller
                 'activePrograms' => $activePrograms,
                 'averageAchievement' => $averageAchievement,
             ];
-        })
-            ->sortByDesc('averageAchievement')
-            ->values();
+        })->sortByDesc('averageAchievement')->values();
 
-        $totalUsers = $groupedByUser->count();
+        $totalUsers = $userSummaries->count();
         $avgAchievement = $totalUsers > 0 ? round($userSummaries->avg('averageAchievement'), 1) : 0;
         $totalPrograms = Program::count();
         $completedTotal = $validTargets->where('status', 'completed')->count();

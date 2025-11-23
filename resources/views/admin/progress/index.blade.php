@@ -10,7 +10,7 @@
                 <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $totalUsers }}</p>
             </div>
             <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                <p class="text-sm text-gray-500">Total Peserta Aktif</p>
+                <p class="text-sm text-gray-500">Total Peserta</p>
                 <p class="mt-2 text-3xl font-semibold text-gray-900">{{ $totalUsers }}</p>
             </div>
             <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
