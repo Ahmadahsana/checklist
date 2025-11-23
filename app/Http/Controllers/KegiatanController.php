@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Presensi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class KegiatanController extends Controller
 {
@@ -58,6 +59,36 @@ class KegiatanController extends Controller
                 $query->where('kegiatan_id', $kegiatan->id);
             })->get();
 
+        $weeklyRecap = [];
+        $weeklyHeaders = [];
+
+        if ($kegiatan->tipe === 'rutin') {
+            $occurrences = Kegiatan::where('nama_kegiatan', $kegiatan->nama_kegiatan)
+                ->orderBy('tanggal', 'desc')
+                ->take(4)
+                ->with('presensis')
+                ->get()
+                ->reverse(); // urutkan dari paling lama ke terbaru
+
+            $weeklyHeaders = $occurrences->map(function ($occ) {
+                return Carbon::parse($occ->tanggal)->isoFormat('D MMM');
+            })->values();
+
+            $users = User::where('role', 'user')->get();
+
+            foreach ($users as $user) {
+                $statuses = [];
+                foreach ($occurrences as $occ) {
+                    $presensiUser = $occ->presensis->firstWhere('user_id', $user->id);
+                    $statuses[] = $presensiUser && $presensiUser->hadir ? '✔' : '✘';
+                }
+                $weeklyRecap[] = [
+                    'user' => $user,
+                    'statuses' => $statuses,
+                ];
+            }
+        }
+
         return view('presensi.show', [
             'kegiatan' => $kegiatan,
             'presensis' => $presensis,
@@ -68,6 +99,8 @@ class KegiatanController extends Controller
             'persentaseKetidakhadiran' => $persentaseKetidakhadiran,
             'presensiTidakHadir' => $presensiTidakHadir,
             'belumHadirUsers' => $belumHadirUsers,
+            'weeklyRecap' => $weeklyRecap,
+            'weeklyHeaders' => $weeklyHeaders,
         ]);
     }
 }

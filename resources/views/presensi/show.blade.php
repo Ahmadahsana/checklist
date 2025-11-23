@@ -38,10 +38,40 @@
                         <tr>
                             <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Belum ada data presensi.</td>
                         </tr>
-                    @endforelse
+        @endforelse
                 </tbody>
             </table>
         </div>
+
+        @if ($kegiatan->tipe === 'rutin' && !empty($weeklyRecap))
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold mb-3">Rekap Kehadiran (4 Minggu Terakhir)</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Peserta</th>
+                                @foreach ($weeklyHeaders as $header)
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{{ $header }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach ($weeklyRecap as $row)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $row['user']->nama_lengkap ?? $row['user']->username }}</td>
+                                    @foreach ($row['statuses'] as $status)
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <span class="{{ $status === '✔' ? 'text-green-600' : 'text-red-500' }}">{{ $status }}</span>
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
 
         @if ($belumHadirUsers->isNotEmpty() || $presensiTidakHadir->isNotEmpty())
             <div class="mt-8">
