@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,9 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
-        return view('profile.edit', compact('user'));
+        $kosList = Kos::all();
+
+        return view('profile.edit', compact('user', 'kosList'));
     }
 
     public function update(Request $request)
@@ -38,7 +41,7 @@ class ProfileController extends Controller
             'nama_ibu' => 'required|string|max:255',
             'no_hp_ortu' => 'required|string|max:20',
             'no_hp_saudara_wali' => 'nullable|string|max:20',
-            'nama_kos' => 'nullable|string|max:255',
+            'nama_kos' => 'nullable|exists:kos,id',
             'harga_kos' => 'nullable|numeric',
             'foto' => 'nullable|image|max:2048', // Maks 2MB
         ]);

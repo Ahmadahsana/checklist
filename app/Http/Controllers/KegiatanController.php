@@ -68,10 +68,11 @@ class KegiatanController extends Controller
                 ->take(4)
                 ->with('presensis')
                 ->get()
-                ->reverse(); // urutkan dari paling lama ke terbaru
+                ->values(); // urut terbaru ke lama (minggu ini di kolom pertama)
 
-            $weeklyHeaders = $occurrences->map(function ($occ) {
-                return Carbon::parse($occ->tanggal)->isoFormat('D MMM');
+            $weeklyHeaders = $occurrences->map(function ($occ, $idx) {
+                $label = $idx === 0 ? 'Minggu ini' : 'Minggu lalu';
+                return $label . ' (' . Carbon::parse($occ->tanggal)->isoFormat('D MMM') . ')';
             })->values();
 
             $users = User::where('role', 'user')->get();
@@ -80,7 +81,7 @@ class KegiatanController extends Controller
                 $statuses = [];
                 foreach ($occurrences as $occ) {
                     $presensiUser = $occ->presensis->firstWhere('user_id', $user->id);
-                    $statuses[] = $presensiUser && $presensiUser->hadir ? '✔' : '✘';
+                                        $statuses[] = $presensiUser && $presensiUser->hadir ? '✔' : '✘';
                 }
                 $weeklyRecap[] = [
                     'user' => $user,
@@ -104,3 +105,7 @@ class KegiatanController extends Controller
         ]);
     }
 }
+
+
+
+

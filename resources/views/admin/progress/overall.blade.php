@@ -17,6 +17,22 @@
             </div>
         @endif
 
+        <!-- Filter Tanggal -->
+        <form method="GET" action="{{ route('admin.progress.overall') }}" class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
+            <div>
+                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
+                <input type="date" id="start_date" name="start_date" value="{{ request('start_date', $startDate) }}" class="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+                <input type="date" id="end_date" name="end_date" value="{{ request('end_date', $endDate) }}" class="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="h-fit w-full rounded-lg bg-blue-600 px-4 py-3 text-white font-semibold shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Terapkan</button>
+                <a href="{{ route('admin.progress.overall') }}" class="h-fit w-full rounded-lg bg-gray-100 px-4 py-3 text-gray-700 font-semibold shadow hover:bg-gray-200 focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 text-center">Reset</a>
+            </div>
+        </form>
+
         <!-- Chart Progress Keseluruhan -->
         <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Rata-rata Capaian Program</h2>

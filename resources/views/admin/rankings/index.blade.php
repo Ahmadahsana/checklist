@@ -5,23 +5,38 @@
 
     <div class="space-y-6">
         <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-            <form method="GET" action="{{ route('admin.rank') }}" class="flex flex-col gap-4 md:flex-row md:items-center">
-                <div>
-                    <label for="bulan" class="block text-sm font-medium text-gray-700">Pilih Bulan</label>
+            <form method="GET" action="{{ route('admin.rank') }}" class="grid gap-4 md:grid-cols-5 md:items-end">
+                <div class="md:col-span-2">
+                    <label for="bulan" class="block text-sm font-medium text-gray-700">Pilih Bulan hahahah</label>
                     <p class="text-xs text-gray-500">Ranking dihitung dari data `progress_bulanans`.</p>
-                </div>
-                <div class="flex items-center gap-3">
                     <select name="bulan" id="bulan"
-                        class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-                        onchange="this.form.submit()">
+                        class="mt-1 w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach ($availableBulan as $bulan)
                             <option value="{{ $bulan }}" {{ $bulan == $selectedBulan ? 'selected' : '' }}>
                                 {{ \Carbon\Carbon::parse($bulan . '-01')->isoFormat('MMMM YYYY') }}
                             </option>
                         @endforeach
                     </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="level" class="block text-sm font-medium text-gray-700">Pilih Tipe Program</label>
+                    <p class="text-xs text-gray-500">Tampilkan ranking Regular saja, Tahfidz saja, atau gabungan.</p>
+                    <select name="level" id="level"
+                        class="mt-1 w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="all" {{ ($selectedLevel ?? 'all') === 'all' ? 'selected' : '' }}>Semua (Regular & Tahfidz)</option>
+                        <option value="regular" {{ ($selectedLevel ?? '') === 'regular' ? 'selected' : '' }}>Regular</option>
+                        <option value="tahfidz" {{ ($selectedLevel ?? '') === 'tahfidz' ? 'selected' : '' }}>Tahfidz</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 md:justify-end">
+                    <button type="submit"
+                        class="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Terapkan
+                    </button>
                     <a href="{{ route('admin.rank') }}"
-                        class="text-sm text-blue-600 hover:underline">Reset</a>
+                        class="w-full rounded-lg border border-gray-200 px-4 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                        Reset
+                    </a>
                 </div>
             </form>
         </div>
@@ -37,6 +52,9 @@
                     <div>
                         <h2 class="text-xl font-semibold text-gray-900">Ranking Bulanan</h2>
                         <p class="text-sm text-gray-500">Urutan berdasarkan nilai rata-rata pencapaian per user.</p>
+                        @if (($selectedLevel ?? 'all') !== 'all')
+                            <p class="text-xs text-blue-600 mt-1 font-medium">Filter: {{ ucfirst($selectedLevel) }}</p>
+                        @endif
                     </div>
                     <span class="rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-blue-600">
                         {{ \Carbon\Carbon::parse($selectedBulan . '-01')->isoFormat('MMMM YYYY') }}

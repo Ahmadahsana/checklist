@@ -133,7 +133,14 @@
 
         <div class="mb-4">
             <label for="nama_kos" class="block text-sm font-medium text-gray-700">Nama Kos</label>
-            <input type="text" readonly name="nama_kos" id="nama_kos" value="{{ old('nama_kos', $user->kos) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <select name="nama_kos" id="nama_kos" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Pilih kos</option>
+                @foreach ($kosList as $kos)
+                    <option value="{{ $kos->id }}" {{ old('nama_kos', optional($user->kos)->id ?? $user->nama_kos) == $kos->id ? 'selected' : '' }}>
+                        {{ $kos->nama_kos }}
+                    </option>
+                @endforeach
+            </select>
             @error('nama_kos')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
             @enderror

@@ -3,6 +3,7 @@
 @section('css')
     <!-- Muat CSS ApexCharts melalui Vite -->
     {{-- @vite(['node_modules/apexcharts/dist/apexcharts.css']) --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
 @endsection
 
 @section('content')
@@ -17,17 +18,11 @@
             </div>
         @endif
 
-        <!-- Pencarian User -->
-        <div class="mb-6">
-            <label for="userSearch" class="block text-sm font-medium text-gray-700 mb-2">Cari User (Nama atau ID)</label>
-            <input type="text" id="userSearch" class="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ketik nama atau ID user">
-        </div>
-
         <!-- Dropdown User -->
         <div class="mb-6">
             <label for="userSelect" class="block text-sm font-medium text-gray-700 mb-2">Pilih User</label>
             {{-- @dd($users) --}}
-            <select id="userSelect" class="w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+            <select id="userSelect" class="w-full" required>
                 <option value="">Pilih User</option>
                 @foreach ($users as $user)
                     <option value="{{ $user->id }}">{{ $user->nama_lengkap }} (ID: {{ $user->id }}, Level: {{ $user->level }})</option>
@@ -59,16 +54,25 @@
 @endsection
 
 @section('script')
-    <!-- Muat JS ApexCharts, Lodash, dan Preline Helper melalui Vite -->
+    <!-- Muat JS ApexCharts, Lodash, Preline Helper melalui Vite -->
     {{-- @vite(['node_modules/lodash/lodash.min.js', 'node_modules/apexcharts/dist/apexcharts.min.js', 'node_modules/preline/dist/helper-apexcharts.js']) --}}
     {{-- @vite([ 'node_modules/apexcharts/dist/apexcharts.min.js', 'node_modules/preline/dist/helper-apexcharts.js']) --}}
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             let chart;
-            const userSearch = document.getElementById('userSearch');
             const userSelect = document.getElementById('userSelect');
             const periodSelect = document.getElementById('periodSelect');
+
+            // Jadikan dropdown user searchable (mirip Select2)
+            const userSelectTom = new TomSelect('#userSelect', {
+                maxItems: 1,
+                sortField: { field: 'text', direction: 'asc' },
+                placeholder: 'Pilih User',
+                searchField: ['text'],
+                allowEmptyOption: true,
+            });
 
             function formatDate(dateStr, period) {
                 const date = new Date(dateStr);
@@ -202,41 +206,6 @@
             // Inisialisasi chart dengan data default (kosong atau placeholder)
             initializeChart({ categories: [], series: [] }, 'weekly');
 
-            // Fungsi untuk memuat ulang dropdown berdasarkan pencarian
-            function loadUsers(searchQuery = '') {
-                fetch(`/admin/progress/user/search?search=${encodeURIComponent(searchQuery)}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const select = document.getElementById('userSelect');
-                    select.innerHTML = '<option value="">Pilih User</option>';
-                    data.users.forEach(user => {
-                        const option = document.createElement('option');
-                        option.value = user.id;
-                        option.textContent = `${user.nama_lengkap} (ID: ${user.id}, Level: ${user.level})`;
-                        select.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading users:', error);
-                    alert('Terjadi kesalahan saat memuat daftar user. Silakan coba lagi.');
-                });
-            }
-
-            // Event listener untuk pencarian user
-            userSearch.addEventListener('input', debounce(function () {
-                loadUsers(this.value);
-            }, 300));
-
             // Event listener untuk dropdown user dan periode
             userSelect.addEventListener('change', function () {
                 if (this.value) {
@@ -278,21 +247,6 @@
                 });
             }
 
-            // Fungsi debounce untuk mencegah spam request
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-
-            // Muat daftar user awal
-            loadUsers();
         });
     </script>
 @endsection

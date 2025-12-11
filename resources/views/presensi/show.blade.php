@@ -1,12 +1,12 @@
 @extends('layouts.vertical', ['title' => 'Detail Presensi Kegiatan'])
 
 @section('content')
-    @include("layouts.shared.page-title", ["subtitle" => "Monitoring", "title" => "Detail Presensi Kegiatan"])
+    @include('layouts.shared.page-title', ['subtitle' => 'Monitoring', 'title' => 'Detail Presensi Kegiatan'])
 
     <div class="bg-white p-6 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-4">{{ $kegiatan->nama_kegiatan }}</h1>
         <p class="text-sm text-gray-600 mb-2">Tanggal: {{ $kegiatan->tanggal }}</p>
-        <p class="text-sm text-gray-600 mb-2">Tipe: {{ ucfirst($kegiatan->jenis) }}</p>
+        <p class="text-sm text-gray-600 mb-2">Tipe: {{ ucfirst($kegiatan->jenis ?? $kegiatan->tipe) }}</p>
         <p class="text-sm text-gray-600 mb-4">Kode Presensi: {{ $kegiatan->kode_unik }}</p>
 
         <div class="mb-6">
@@ -38,7 +38,7 @@
                         <tr>
                             <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Belum ada data presensi.</td>
                         </tr>
-        @endforelse
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -47,21 +47,23 @@
             <div class="mt-8">
                 <h3 class="text-lg font-semibold mb-3">Rekap Kehadiran (4 Minggu Terakhir)</h3>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
+                    <table class="min-w-full border border-gray-200 text-sm">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Peserta</th>
+                                <th class="border border-gray-200 px-4 py-2 text-center font-semibold uppercase text-gray-600">No</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-semibold uppercase text-gray-600">Nama</th>
                                 @foreach ($weeklyHeaders as $header)
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">{{ $header }}</th>
+                                    <th class="border border-gray-200 px-4 py-2 text-center font-semibold uppercase text-gray-600">{{ $header }}</th>
                                 @endforeach
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            @foreach ($weeklyRecap as $row)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $row['user']->nama_lengkap ?? $row['user']->username }}</td>
+                        <tbody>
+                            @foreach ($weeklyRecap as $index => $row)
+                                <tr class="odd:bg-white even:bg-gray-50">
+                                    <td class="border border-gray-200 px-4 py-2 text-center">{{ $index + 1 }}</td>
+                                    <td class="border border-gray-200 px-4 py-2">{{ $row['user']->nama_lengkap ?? $row['user']->username }}</td>
                                     @foreach ($row['statuses'] as $status)
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                        <td class="border border-gray-200 px-4 py-2 text-center text-lg">
                                             <span class="{{ $status === '✔' ? 'text-green-600' : 'text-red-500' }}">{{ $status }}</span>
                                         </td>
                                     @endforeach

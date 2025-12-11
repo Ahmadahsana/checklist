@@ -68,9 +68,17 @@ class TargetController extends Controller
         }])
             ->get()
             ->map(function ($program) {
-                $targets = $program->userTargets;
+                $eligibleUsers = User::where('role', 'user')
+                    ->when($program->level && $program->level !== 'both', function ($q) use ($program) {
+                        return $q->where('level', $program->level);
+                    })
+                    ->get();
 
-                if ($targets->count() === 0) {
+                $totalEligible = $eligibleUsers->count();
+                $targets = $program->userTargets;
+                $targetByUser = $targets->keyBy('user_id');
+
+                if ($totalEligible === 0) {
                     return [
                         'program' => $program,
                         'averageAchievement' => 0,
@@ -80,14 +88,27 @@ class TargetController extends Controller
                     ];
                 }
 
-                $scores = $targets->map(fn($target) => $this->calculateTargetAchievement($target))->filter();
-                $averageAchievement = $scores->count() > 0 ? round($scores->avg(), 1) : 0;
+                $scores = $eligibleUsers->map(function ($user) use ($targetByUser) {
+                    $target = $targetByUser->get($user->id);
+
+                    if (!$target) {
+                        return 0;
+                    }
+
+                    if (isset($target->score)) {
+                        return $target->score;
+                    }
+
+                    return $this->calculateTargetAchievement($target) ?? 0;
+                });
+
+                $averageAchievement = round($scores->avg() ?? 0, 1);
 
                 return [
                     'program' => $program,
                     'averageAchievement' => $averageAchievement,
                     'records' => $targets->count(),
-                    'participants' => $targets->pluck('user_id')->unique()->count(),
+                    'participants' => $totalEligible,
                     'lastUpdate' => optional($targets->sortByDesc('updated_at')->first())->updated_at,
                 ];
             })

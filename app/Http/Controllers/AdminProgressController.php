@@ -85,29 +85,34 @@ class AdminProgressController extends Controller
 
     public function rank(Request $request)
     {
-
-        // Ambil bulan yang dipilih dari request, default ke bulan saat ini
         $selectedBulan = $request->input('bulan', date('Y-m'));
+        $selectedLevel = $request->input('level', 'all'); // regular, tahfidz, all
 
-        // Ambil daftar bulan yang tersedia dari progress_bulanan
         $availableBulan = ProgressBulanan::select('bulan')
             ->distinct()
             ->orderBy('bulan', 'desc')
             ->pluck('bulan')
             ->toArray();
 
-        // Ambil data perangkingan untuk bulan yang dipilih
-        $rankings = ProgressBulanan::select('progress_bulanans.user_id', 'progress_bulanans.value', 'users.nama_lengkap')
+        $rankings = ProgressBulanan::select('progress_bulanans.user_id', 'progress_bulanans.value', 'users.nama_lengkap', 'users.level')
             ->join('users', 'progress_bulanans.user_id', '=', 'users.id')
             ->where('progress_bulanans.bulan', $selectedBulan)
+            ->when($selectedLevel !== 'all', function ($query) use ($selectedLevel) {
+                $query->where('users.level', $selectedLevel);
+            })
             ->orderBy('progress_bulanans.value', 'desc')
             ->get()
             ->map(function ($item, $index) {
-                $item->rank = $index + 1; // Tambahkan ranking
+                $item->rank = $index + 1;
                 return $item;
             });
 
-        return view('admin.rankings.index', compact('rankings', 'availableBulan', 'selectedBulan'));
+        return view('admin.rankings.index', [
+            'rankings' => $rankings,
+            'availableBulan' => $availableBulan,
+            'selectedBulan' => $selectedBulan,
+            'selectedLevel' => $selectedLevel,
+        ]);
     }
 
     public function update(Request $request)
@@ -225,9 +230,15 @@ class AdminProgressController extends Controller
         return $categories;
     }
 
-    public function overallProgress()
+    public function overallProgress(Request $request)
     {
-        $users = User::where('level', '!=', 'admin')->get();
+        $startDateInput = $request->input('start_date');
+        $endDateInput = $request->input('end_date');
+
+        $startDate = $startDateInput ? Carbon::parse($startDateInput)->startOfDay() : null;
+        $endDate = $endDateInput ? Carbon::parse($endDateInput)->endOfDay() : null;
+
+        $users = User::where('role', 'user')->get();
         $programs = Program::all();
 
         $overallProgress = [];
@@ -238,15 +249,13 @@ class AdminProgressController extends Controller
             foreach ($users as $user) {
                 $userTargets = UserTarget::where('user_id', $user->id)
                     ->where('program_id', $program->id)
-                    ->where('date', '>=', now()->subMonths(12)->startOfMonth())
+                    ->when($startDate, fn($q) => $q->whereDate('date', '>=', $startDate))
+                    ->when($endDate, fn($q) => $q->whereDate('date', '<=', $endDate))
                     ->get();
 
                 foreach ($userTargets as $target) {
-                    if ($program->type === 'boolean') {
-                        $totalValue += $target->value == 1 ? 100 : 0;
-                    } else { // numeric
-                        $totalValue += ($target->value / $program->target) * 100;
-                    }
+                    $score = $this->calculateTargetScore($target);
+                    $totalValue += $score ?? 0;
                     $count++;
                 }
             }
@@ -255,10 +264,12 @@ class AdminProgressController extends Controller
             $overallProgress[$program->nama_program] = $average;
         }
 
-        // Debugging: Log data untuk memastikan format benar
-        // \Log::info('Overall Progress Data', ['overallProgress' => $overallProgress, 'programs' => $programs->pluck('nama_program')->toArray()]);
-
-        return view('admin.progress.overall', compact('overallProgress', 'programs'));
+        return view('admin.progress.overall', [
+            'overallProgress' => $overallProgress,
+            'programs' => $programs,
+            'startDate' => $startDateInput,
+            'endDate' => $endDateInput,
+        ]);
     }
 
     public function showUserProgress()
