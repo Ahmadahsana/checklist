@@ -18,9 +18,16 @@ class AdminReportController extends Controller
         $this->middleware(['auth', 'role:admin']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+
         $users = User::where('role', 'user')
+            ->when($search, function ($q) use ($search) {
+                $q->where('nama_lengkap', 'like', '%' . $search . '%')
+                    ->orWhere('username', 'like', '%' . $search . '%')
+                    ->orWhere('id', $search);
+            })
             ->orderBy('nama_lengkap')
             ->get();
 
@@ -29,6 +36,7 @@ class AdminReportController extends Controller
         return view('admin.user-reports.index', [
             'users' => $users,
             'currentMonth' => $currentMonth,
+            'search' => $search,
         ]);
     }
 

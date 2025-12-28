@@ -4,11 +4,22 @@
     @include('layouts.shared.page-title', ['subtitle' => 'Admin', 'title' => 'Laporan User'])
 
     <div class="bg-white p-6 rounded-xl shadow-lg">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Laporan User</h1>
                 <p class="text-sm text-gray-500">Pilih user untuk melihat laporan bulanan per minggu.</p>
             </div>
+            <form method="GET" action="{{ route('admin.user-reports.index') }}" class="flex gap-2">
+                <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama / username / ID"
+                    class="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500">
+                <button type="submit"
+                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Cari
+                </button>
+                @if ($search)
+                    <a href="{{ route('admin.user-reports.index') }}" class="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">Reset</a>
+                @endif
+            </form>
         </div>
 
         <div class="overflow-x-auto">
