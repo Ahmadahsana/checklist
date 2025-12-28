@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminFeeController;
+use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminProgressController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContentLandingPageController;
@@ -90,6 +91,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () { // Pastikan hanya
     Route::get('/admin/progress/overall', [AdminProgressController::class, 'overallProgress'])->name('admin.progress.overall');
 
     Route::get('/admin/rank', [AdminProgressController::class, 'rank'])->name('admin.rank');
+
+    // Laporan User bulanan (mingguan)
+    Route::get('/admin/laporan-user', [AdminReportController::class, 'index'])->name('admin.user-reports.index');
+    Route::get('/admin/laporan-user/{user}', [AdminReportController::class, 'show'])->name('admin.user-reports.show');
+    Route::get('/admin/laporan-user/{user}/export', [AdminReportController::class, 'export'])->name('admin.user-reports.export');
 });
 
 Route::middleware('auth')->group(function () {
