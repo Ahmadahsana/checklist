@@ -14,9 +14,9 @@ class PresensiController extends Controller
     //     $kegiatans = Kegiatan::withCount(['presensis' => function ($query) {
     //         $query->where('hadir', true);
     //     }])->withCount('peserta')->get();
-
+    //
     //     $chartData = $this->prepareChartData($kegiatans);
-
+    //
     //     return view('presensi.index', compact('kegiatans', 'chartData'));
     // }
 
@@ -27,11 +27,22 @@ class PresensiController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $kegiatan = Kegiatan::where('tanggal', '>=', now()->startOfDay())->get();
+        $today = now();
+        $dayName = $today->isoFormat('dddd');
+
+        // Update query untuk mengakomodir rutin (hari) dan insidental (tanggal)
+        $kegiatan = Kegiatan::where(function ($q) use ($today, $dayName) {
+            $q->whereDate('tanggal', '>=', $today->toDateString())
+                ->orWhere('hari', $dayName);
+        })->get();
+
         $currentTime = now();
 
         // Cari kegiatan yang sedang aktif (hari ini dan dalam rentang waktu)
-        $kegiatanAktif = Kegiatan::where('tanggal', now()->toDateString())
+        $kegiatanAktif = Kegiatan::where(function ($q) use ($today, $dayName) {
+            $q->whereDate('tanggal', $today->toDateString())
+                ->orWhere('hari', $dayName);
+        })
             ->where('jam_mulai', '<=', $currentTime->format('H:i:s'))
             ->where('jam_selesai', '>=', $currentTime->format('H:i:s'))
             ->first();
@@ -72,9 +83,14 @@ class PresensiController extends Controller
         // Ambil waktu saat ini
         $currentTime = now();
 
+        // Tentukan tanggal referensi untuk validasi waktu
+        // Jika insidental -> pakai tanggal kegiatan
+        // Jika rutin -> pakai hari ini (asumsi user absen di hari yang sama)
+        $referenceDate = $kegiatan->jenis === 'rutin' ? now()->toDateString() : $kegiatan->tanggal;
+
         // Gabungkan tanggal kegiatan dengan jam_mulai dan jam_selesai untuk perbandingan
-        $startTime = $kegiatan->tanggal . ' ' . $kegiatan->jam_mulai;
-        $endTime = $kegiatan->tanggal . ' ' . $kegiatan->jam_selesai;
+        $startTime = $referenceDate . ' ' . $kegiatan->jam_mulai;
+        $endTime = $referenceDate . ' ' . $kegiatan->jam_selesai;
 
         // Konversi ke objek Carbon untuk perbandingan
         $startDateTime = \Carbon\Carbon::parse($startTime);
@@ -90,7 +106,8 @@ class PresensiController extends Controller
         }
 
         // Cek apakah kode presensi benar
-        if ($kegiatan->kode_unik != $request->kode_unik) {
+        // Gunakan kode_mingguan (aksesor di model yang handle logika rutin vs insidental)
+        if ($kegiatan->kode_mingguan != $request->kode_unik) {
             return redirect()->back()->with('error', 'Kode presensi salah.');
         }
 

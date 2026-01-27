@@ -34,4 +34,18 @@ class Kegiatan extends Model
     {
         return 100 - $this->persentase_kehadiran;
     }
+    // Generate kode unik per minggu untuk kegiatan rutin
+    public function getKodeMingguanAttribute()
+    {
+        if ($this->jenis === 'rutin') {
+            // Gunakan tahun dan minggu saat ini sebagai seed
+            // Format seed: KODE_ASLI-TAHUN-MINGGU
+            $seed = $this->kode_unik . '-' . now()->year . '-' . now()->weekOfYear;
+
+            // Hash seed dan ambil 6 karakter pertama, uppercase
+            return strtoupper(substr(md5($seed), 0, 6));
+        }
+
+        return $this->kode_unik;
+    }
 }

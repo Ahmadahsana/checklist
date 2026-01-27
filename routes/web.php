@@ -161,7 +161,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/presensi-kegiatan', [KegiatanController::class, 'index'])->name('presensi.index');
     Route::get('/presensi-kegiatan/create', [KegiatanController::class, 'create'])->name('presensi.create');
     Route::post('/presensi-kegiatan', [KegiatanController::class, 'store'])->name('presensi.store');
+    Route::get('/presensi-kegiatan/{kegiatan}/export', [KegiatanController::class, 'exportCsv'])->name('presensi.export');
     Route::get('/presensi-kegiatan/{kegiatan}', [KegiatanController::class, 'show'])->name('presensi.show');
+    Route::delete('/presensi-kegiatan/{kegiatan}', [KegiatanController::class, 'destroy'])->name('presensi.destroy');
 });
 
 // Route untuk User Personal (Peserta)

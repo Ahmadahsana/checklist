@@ -37,12 +37,26 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->tanggal }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->jam_mulai }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ ucfirst($item->jenis) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->kode_unik }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @if($item->jenis == 'rutin')
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs" title="Berubah tiap minggu">{{ $item->kode_mingguan }}</span>
+                                @else
+                                    {{ $item->kode_mingguan }}
+                                @endif
+                            </td>
                             {{-- <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 {{ $item->persentase_kehadiran }}% (Hadir) / {{ $item->persentase_ketidakhadiran }}% (Tidak Hadir)
                             </td> --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                                 <a href="{{ route('presensi.show', $item) }}" class="text-blue-600 hover:underline">Detail</a>
+                                <form action="{{ route('presensi.destroy', $item) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:underline"
+                                        onclick="return confirm('Hapus kegiatan ini?')">
+                                        Hapus
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach

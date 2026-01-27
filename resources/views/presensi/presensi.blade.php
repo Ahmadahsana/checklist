@@ -34,8 +34,8 @@
             </div>
             <div>
                 <label for="kode_unik" class="block text-sm font-medium text-gray-700">Kode Kehadiran</label>
-                <input type="number" name="kode_unik" id="kode_unik" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                <p class="mt-1 text-sm text-gray-500">Kode diberikan oleh pengelola saat acara berlangsung.</p>
+                <input type="text" name="kode_unik" id="kode_unik" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <p class="mt-1 text-sm text-gray-500">Kode unik presensi (kombinasi huruf/angka).</p>
             </div>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Kirim Presensi</button>
         </form>

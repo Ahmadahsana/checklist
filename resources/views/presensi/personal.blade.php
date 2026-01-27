@@ -49,14 +49,17 @@
                     <select name="kegiatan_id" id="kegiatan_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                         <option value="">Pilih Kegiatan</option>
                         @foreach ($kegiatan as $item)
-                            <option value="{{ $item->id }}">{{ $item->nama_kegiatan }} ({{ $item->tanggal }})</option>
+                            <option value="{{ $item->id }}">
+                                {{ $item->nama_kegiatan }} 
+                                ({{ $item->jenis == 'rutin' ? $item->hari : $item->tanggal }})
+                            </option>
                         @endforeach
                     </select>
                 </div>
 
                 <div class="mb-4">
                     <label for="kode_unik" class="block text-sm font-medium text-gray-700">Kode unik</label>
-                    <input type="number" name="kode_unik" id="kode_unik" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    <input type="text" name="kode_unik" id="kode_unik" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                 </div>
 
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit Presensi</button>
