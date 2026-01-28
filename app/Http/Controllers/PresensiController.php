@@ -6,6 +6,7 @@ use App\Models\Kegiatan;
 use App\Models\Presensi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PresensiController extends Controller
 {
@@ -75,7 +76,7 @@ class PresensiController extends Controller
     {
         $request->validate([
             'kegiatan_id' => 'required|exists:kegiatans,id',
-            'kode_unik' => 'required|numeric',
+            'kode_unik' => 'required',
         ]);
 
         $kegiatan = Kegiatan::findOrFail($request->kegiatan_id);
@@ -97,40 +98,61 @@ class PresensiController extends Controller
         $endDateTime = \Carbon\Carbon::parse($endTime);
 
         // Cek apakah waktu saat ini berada dalam rentang waktu kegiatan
+        // Cek apakah waktu saat ini berada dalam rentang waktu kegiatan
         if ($currentTime->lt($startDateTime)) {
+            Log::warning('Presensi gagal: Belum waktu mulai', ['user_id' => auth()->id(), 'kegiatan_id' => $kegiatan->id, 'current' => $currentTime, 'start' => $startDateTime]);
             return redirect()->back()->with('error', 'Presensi tidak valid karena waktu belum dimulai.');
         }
 
         if ($currentTime->gt($endDateTime)) {
+            Log::warning('Presensi gagal: Waktu berakhir', ['user_id' => auth()->id(), 'kegiatan_id' => $kegiatan->id, 'current' => $currentTime, 'end' => $endDateTime]);
             return redirect()->back()->with('error', 'Presensi tidak valid karena waktu sudah berakhir.');
         }
 
         // Cek apakah kode presensi benar
         // Gunakan kode_mingguan (aksesor di model yang handle logika rutin vs insidental)
         if ($kegiatan->kode_mingguan != $request->kode_unik) {
+            Log::warning('Presensi gagal: Kode salah', [
+                'user_id' => auth()->id(),
+                'input_kode' => $request->kode_unik,
+                'actual_kode' => $kegiatan->kode_mingguan
+            ]);
             return redirect()->back()->with('error', 'Kode presensi salah.');
         }
 
         // Cek apakah user sudah presensi
-        $presensi = Presensi::where('kegiatan_id', $kegiatan->id)
-            ->where('user_id', auth()->id())
-            ->first();
+        // Untuk kegiatan rutin, cek presensi hari ini
+        $presenceCheck = Presensi::where('kegiatan_id', $kegiatan->id)
+            ->where('user_id', auth()->id());
+
+        if ($kegiatan->jenis === 'rutin') {
+            $presenceCheck->whereDate('created_at', now()->toDateString());
+        }
+
+        $presensi = $presenceCheck->first();
 
         if ($presensi) {
-            return redirect()->back()->with('error', 'Anda sudah melakukan presensi untuk kegiatan ini.');
+            Log::info('Presensi gagal: Sudah absen', ['user_id' => auth()->id(), 'kegiatan_id' => $kegiatan->id]);
+            return redirect()->back()->with('error', 'Anda sudah melakukan presensi untuk kegiatan ini hari ini.');
         }
 
         // Simpan presensi
-        Presensi::create([
-            'user_id' => Auth::user()->id,
-            'kegiatan_id' => $kegiatan->id,
-            'hadir' => 1,
-            'kode_masuk' => $request->kode_unik,
-            'jam_hadir' => date('H:i:s'),
-            'keterangan' => 'valid', // valid dan tidak valid
-        ]);
+        try {
+            Presensi::create([
+                'user_id' => Auth::user()->id,
+                'kegiatan_id' => $kegiatan->id,
+                'hadir' => 1,
+                'kode_masuk' => $request->kode_unik,
+                'jam_hadir' => now()->toTimeString(),
+                'keterangan' => 'valid', // valid dan tidak valid
+            ]);
 
-        return redirect()->back()->with('success', 'Presensi berhasil disimpan.');
+            Log::info('Presensi berhasil disimpan', ['user_id' => auth()->id(), 'kegiatan_id' => $kegiatan->id]);
+            return redirect()->route('presensi.riwayat')->with('success', 'Presensi berhasil disimpan.');
+        } catch (\Exception $e) {
+            Log::error('Presensi gagal disimpan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan presensi.');
+        }
     }
 
     public function riwayat()

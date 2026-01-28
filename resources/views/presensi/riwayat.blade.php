@@ -38,7 +38,7 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $loop->iteration }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->kegiatan->nama_kegiatan }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->kegiatan->tanggal }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($item->created_at)->format('d-m-Y') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->jam_hadir }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->kode_masuk }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $item->keterangan }}</td>
@@ -49,4 +49,27 @@
             </div>
         @endif
     </div>
+@endsection
+
+@section('script')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                timer: 3000,
+                showConfirmButton: false
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: "{{ session('error') }}",
+            });
+        @endif
+    </script>
 @endsection
